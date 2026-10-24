@@ -1,59 +1,1245 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E📚%3C/text%3E%3C/svg%3E"><link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;800&family=Mukta:wght@400;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"><title>Admin – Vidyasparsh</title><meta name="robots" content="noindex,nofollow"></head>
-<body><main class="wrap" id="app"></main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script><script src="config.js"></script><script src="app.js"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vidyasparsh Publication · Admin</title>
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=DM+Sans:wght@400;500;600&family=Noto+Sans+Devanagari:wght@600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
 <script>
-shell();
-let books = [], editing = null;
-const slugify = t => t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-const say = t => toast(t);
-(async function init() {
-  if (!db) { $("app").innerHTML = '<div class="box"><h2>Setup needed</h2><p>Add your Supabase URL and key in config.js, then reload.</p></div>'; return; }
-  const { data } = await db.auth.getSession();
-  data.session ? panel() : login();
-})();
-function login() {
-  $("app").innerHTML = `<form class="box" id="lf"><h2>Admin login</h2><input id="em" type="email" placeholder="Email" autocomplete="username" required><input id="pw" type="password" placeholder="Password" autocomplete="current-password" required><button class="btn">Log in</button></form>`;
-  $("lf").onsubmit = async e => { e.preventDefault(); const { error } = await db.auth.signInWithPassword({ email: $("em").value, password: $("pw").value }); error ? say(error.message) : panel(); };
-}
-async function panel() {
-  books = await loadBooks();
-  $("app").innerHTML = `<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:24px 0"><h1 style="margin-right:auto">Manage books</h1><button class="btn alt" id="sm">Download sitemap.xml</button><button class="btn alt" id="lo">Log out</button></div>
-  <form class="box" id="f" style="max-width:none"><h2 id="ft">Add a book</h2>
-  <input id="t" placeholder="Title" required><input id="a" placeholder="Author">
-  <input id="c" list="cl" placeholder="Class (e.g. Class 10)" required><datalist id="cl">${[...Array(12)].map((_, i) => `<option>Class ${i + 1}</option>`).join("")}<option>College</option></datalist>
-  <input id="s" placeholder="Subject (e.g. Science)" required><input id="p" type="number" min="0" placeholder="Price in rupees" required>
-  <textarea id="d" rows="4" placeholder="Description"></textarea>
-  <label>Cover colour (used when there is no image) <input id="col" type="color" value="#232f6b"></label>
-  <label>Cover image <input id="file" type="file" accept="image/*"></label>
-  <label><input id="st" type="checkbox" checked style="width:auto"> In stock</label>
-  <div style="display:flex;gap:10px"><button class="btn" id="save">Save book</button><button type="button" class="btn alt" id="cancel" hidden>Cancel edit</button></div></form>
-  <div class="tbl"><table><tr><th>Title</th><th>Class</th><th>Subject</th><th>Price</th><th></th></tr>${books.map(b => `<tr><td>${esc(b.title)}</td><td>${esc(b.cls)}</td><td>${esc(b.subject)}</td><td>${money(b.price)}</td><td><button class="btn alt" data-e="${b.id}">Edit</button> <button class="btn alt" data-x="${b.id}">Delete</button></td></tr>`).join("")}</table></div>`;
-  $("lo").onclick = async () => { await db.auth.signOut(); login(); };
-  $("sm").onclick = sitemap;
-  $("cancel").onclick = () => { editing = null; panel(); };
-  $("f").onsubmit = save;
-  $("app").onclick = async e => {
-    const ed = e.target.closest("[data-e]"), dl = e.target.closest("[data-x]");
-    if (ed) { editing = books.find(b => b.id === ed.dataset.e); $("ft").textContent = "Edit book"; $("cancel").hidden = false;
-      $("t").value = editing.title; $("a").value = editing.author; $("c").value = editing.cls; $("s").value = editing.subject; $("p").value = editing.price; $("d").value = editing.description; $("col").value = editing.color || "#232f6b"; $("st").checked = editing.in_stock !== false; scrollTo(0, 0); }
-    if (dl && confirm("Delete this book permanently?")) { const { error } = await db.from("books").delete().eq("id", dl.dataset.x); error ? say(error.message) : (say("Deleted"), panel()); }
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          display: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'],
+          sans: ['"DM Sans"', 'system-ui', 'sans-serif'],
+          deva: ['"Noto Sans Devanagari"', 'sans-serif']
+        },
+        colors: {
+          ink:   { 700: '#2A3578', 800: '#1B2559', 900: '#121A44' },
+          saffron: { 400: '#F7B84B', 500: '#F5A623', 600: '#DB8F0F' },
+          mist:  '#F2F4FA',
+          line:  '#E2E6F1',
+          teal:  '#0E9F8E',
+          rose:  '#D9345A'
+        }
+      }
+    }
   };
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+  html, body { height: 100%; }
+  body { font-family: 'DM Sans', system-ui, sans-serif; background: #F2F4FA; color: #121A44; }
+  :focus-visible { outline: 2px solid #F5A623; outline-offset: 2px; }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-10px); }
+    40% { transform: translateX(9px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(4px); }
+  }
+  .shake { animation: shake .45s ease; }
+
+  @keyframes pulse-soft { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
+  .skeleton { animation: pulse-soft 1.4s ease-in-out infinite; background: #E7EAF4; border-radius: 12px; }
+
+  .view { display: none; }
+  .view.active { display: block; animation: viewIn .28s ease both; }
+  @keyframes viewIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .field {
+    width: 100%; border: 1px solid #E2E6F1; background: #fff; border-radius: 12px;
+    padding: .7rem .9rem; font-size: .925rem; transition: border-color .2s, box-shadow .2s;
+  }
+  .field::placeholder { color: #9AA3C0; }
+  .field:focus { outline: none; border-color: #2A3578; box-shadow: 0 0 0 4px rgba(42,53,120,.12); }
+
+  .nav-btn { transition: background-color .2s, color .2s; }
+  .nav-btn.active { background: rgba(255,255,255,.12); color: #fff; }
+  .nav-btn.active .nav-dot { background: #F5A623; }
+
+  .tab-btn.active { color: #1B2559; }
+  .tab-btn.active .tab-pill { background: #F5A623; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+
+<body class="antialiased">
+
+<!-- ========================= LOGIN SCREEN (Supabase Auth) ========================= -->
+<div id="lock" class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-ink-900 px-5 transition-opacity duration-500">
+  <div aria-hidden="true" class="pointer-events-none absolute inset-0 flex select-none items-center justify-center font-deva text-[34vw] font-semibold leading-none text-white/[0.04]">विद्या</div>
+
+  <div id="lock-card" class="relative w-full max-w-sm rounded-3xl border border-white/10 bg-white/[0.06] p-8 text-center shadow-2xl backdrop-blur-xl">
+    <div class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-saffron-500 font-deva text-2xl font-semibold text-ink-900">वि</div>
+    <h1 class="font-display text-2xl font-bold text-white">Vidyasparsh admin</h1>
+    <p class="mt-1.5 text-sm text-white/60">Sign in with your admin email and password.</p>
+
+    <form id="login-form" class="mt-7 space-y-3 text-left" novalidate>
+      <input id="login-email" type="email" autocomplete="username" required placeholder="Email" aria-label="Email" class="w-full rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white placeholder-white/40 transition focus:border-saffron-500 focus:bg-white/15 focus:outline-none focus:ring-4 focus:ring-saffron-500/20">
+      <input id="login-password" type="password" autocomplete="current-password" required placeholder="Password" aria-label="Password" class="w-full rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white placeholder-white/40 transition focus:border-saffron-500 focus:bg-white/15 focus:outline-none focus:ring-4 focus:ring-saffron-500/20">
+      <p id="login-error" class="min-h-[1.25rem] text-sm text-rose-300" role="alert"></p>
+      <button id="login-submit" type="submit" class="w-full rounded-xl bg-saffron-500 py-3 text-sm font-semibold text-ink-900 transition hover:bg-saffron-400 active:scale-[.98] disabled:opacity-60">Sign in</button>
+    </form>
+    <p class="mt-5 text-xs leading-relaxed text-white/45">No account yet? In Supabase open Authentication → Users → Add user, and tick “Auto confirm user”.</p>
+  </div>
+</div>
+
+<!-- Dashboard mounts here only after a successful sign-in -->
+<div id="app"></div>
+
+<!-- ========================= DASHBOARD TEMPLATE (inert until unlocked) ========================= -->
+<template id="app-template">
+  <div class="flex min-h-screen">
+
+    <!-- Sidebar (desktop) -->
+    <aside class="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col bg-ink-800 p-5 text-white/70 lg:flex">
+      <div class="mb-8 flex items-center gap-3 px-2">
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-saffron-500 font-deva text-lg font-semibold text-ink-900">वि</div>
+        <div class="leading-tight">
+          <p class="font-display text-base font-bold text-white">Vidyasparsh</p>
+          <p class="text-xs text-white/50">Publication admin</p>
+        </div>
+      </div>
+
+      <nav class="flex flex-1 flex-col gap-1" aria-label="Sections">
+        <button data-tab="books" class="nav-btn flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium hover:bg-white/10 hover:text-white">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5.5A1.5 1.5 0 0 1 5.5 4H19v15H5.5A1.5 1.5 0 0 0 4 20.5v-15ZM4 20.5A1.5 1.5 0 0 0 5.5 22H19"/></svg>
+          <span class="flex-1">Manage books</span>
+          <span class="nav-dot h-1.5 w-1.5 rounded-full bg-transparent"></span>
+        </button>
+        <button data-tab="videos" class="nav-btn flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium hover:bg-white/10 hover:text-white">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path stroke-linejoin="round" d="m10.5 9.5 4 2.5-4 2.5v-5Z"/></svg>
+          <span class="flex-1">Manage videos</span>
+          <span class="nav-dot h-1.5 w-1.5 rounded-full bg-transparent"></span>
+        </button>
+        <button data-tab="messages" class="nav-btn flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium hover:bg-white/10 hover:text-white">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4 3.5V17h-.5A1.5 1.5 0 0 1 4 15.5v-9Z"/></svg>
+          <span class="flex-1">Messages</span>
+          <span id="msg-badge" class="hidden rounded-full bg-saffron-500 px-2 py-0.5 text-xs font-semibold text-ink-900">0</span>
+          <span class="nav-dot h-1.5 w-1.5 rounded-full bg-transparent"></span>
+        </button>
+        <button data-tab="contact" class="nav-btn flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium hover:bg-white/10 hover:text-white">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path stroke-linecap="round" stroke-linejoin="round" d="m4 7.5 8 5.5 8-5.5"/></svg>
+          <span class="flex-1">Contact details</span>
+          <span class="nav-dot h-1.5 w-1.5 rounded-full bg-transparent"></span>
+        </button>
+        <button data-tab="setup" class="nav-btn flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium hover:bg-white/10 hover:text-white">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h4l2.5-6 4 12 2.5-6H21"/></svg>
+          <span class="flex-1">Setup help</span>
+          <span id="health-dot" class="h-2 w-2 rounded-full bg-white/30" title="Database connection"></span>
+          <span class="nav-dot h-1.5 w-1.5 rounded-full bg-transparent"></span>
+        </button>
+      </nav>
+
+      <button id="logout" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/70 transition hover:bg-white/10 hover:text-white">
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7V5.5A1.5 1.5 0 0 0 13.5 4h-8A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20h8a1.5 1.5 0 0 0 1.5-1.5V17M10 12h10m0 0-3-3m3 3-3 3"/></svg>
+        Log out
+      </button>
+    </aside>
+
+    <!-- Main -->
+    <div class="flex min-w-0 flex-1 flex-col lg:pl-64">
+
+      <!-- Mobile top bar -->
+      <header class="sticky top-0 z-20 flex items-center justify-between border-b border-line bg-white/85 px-4 py-3 backdrop-blur lg:hidden">
+        <div class="flex items-center gap-2.5">
+          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-ink-800 font-deva text-sm font-semibold text-saffron-500">वि</div>
+          <span class="font-display text-base font-bold">Vidyasparsh admin</span>
+        </div>
+        <button data-logout class="rounded-lg px-3 py-1.5 text-sm font-medium text-ink-700 hover:bg-mist">Log out</button>
+      </header>
+
+      <main class="mx-auto w-full max-w-6xl flex-1 px-4 pb-28 pt-6 sm:px-8 lg:pb-12 lg:pt-10">
+
+        <div id="key-warning" class="mb-6 hidden rounded-2xl border border-saffron-500/40 bg-saffron-500/10 px-4 py-3 text-sm text-ink-800">
+          Add your Supabase anon key in the <code class="rounded bg-white/70 px-1.5 py-0.5 text-[13px]">SUPABASE_ANON_KEY</code> constant to load and save data.
+        </div>
+
+        <!-- ================= BOOKS ================= -->
+        <section id="view-books" class="view" aria-labelledby="h-books">
+          <div class="mb-6">
+            <h2 id="h-books" class="font-display text-3xl font-bold">Manage books</h2>
+            <p class="mt-1 text-sm text-ink-700/70">Add titles to the catalogue or remove ones you no longer sell.</p>
+          </div>
+
+          <form id="form-book" class="rounded-3xl border border-line bg-white p-5 shadow-sm sm:p-7">
+            <h3 class="font-display text-lg font-bold">Add a book</h3>
+            <div class="mt-5 grid gap-4 sm:grid-cols-2">
+              <label class="block sm:col-span-2">
+                <span class="mb-1.5 block text-sm font-medium">Title</span>
+                <input name="title" required class="field" placeholder="Book title">
+              </label>
+              <label class="block">
+                <span class="mb-1.5 block text-sm font-medium">Author</span>
+                <input name="author" required class="field" placeholder="Author’s name">
+              </label>
+              <label class="block">
+                <span class="mb-1.5 block text-sm font-medium">Subject</span>
+                <input name="subject" required class="field" placeholder="Physics">
+              </label>
+              <label class="block">
+                <span class="mb-1.5 block text-sm font-medium">Price (₹)</span>
+                <input name="price" type="number" inputmode="decimal" min="0" step="0.01" required class="field" placeholder="299">
+              </label>
+              <label class="block">
+                <span class="mb-1.5 block text-sm font-medium">Availability</span>
+                <select name="in_stock" class="field">
+                  <option value="true">In stock</option>
+                  <option value="false">Out of stock</option>
+                </select>
+              </label>
+              <div class="sm:col-span-2">
+                <span class="mb-1.5 block text-sm font-medium">Cover image</span>
+                <div class="flex flex-col gap-4 sm:flex-row">
+                  <div id="cover-preview" class="flex aspect-[3/4] w-28 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-dashed border-line bg-mist px-2 text-center text-xs text-ink-700/50">No cover yet</div>
+                  <div class="min-w-0 flex-1">
+                    <input id="cover-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="hidden">
+                    <button type="button" id="cover-pick" class="inline-flex items-center gap-2 rounded-xl border border-line bg-white px-4 py-2.5 text-sm font-semibold text-ink-800 transition hover:bg-mist active:scale-[.98] disabled:opacity-60">
+                      <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0-4 4m4-4 4 4M5 14v4.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V14"/></svg>
+                      Upload from device
+                    </button>
+                    <p id="cover-status" class="mt-2 text-xs text-ink-700/60" aria-live="polite">JPG, PNG or WebP. It is resized automatically and the link fills in below.</p>
+                    <label class="mt-4 block">
+                      <span class="mb-1.5 block text-xs font-medium text-ink-700/70">Or paste an image link</span>
+                      <input name="cover" type="url" required class="field" placeholder="https://…/cover.jpg">
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <label class="block sm:col-span-2">
+                <span class="mb-1.5 block text-sm font-medium">Description</span>
+                <textarea name="description" rows="3" required class="field resize-y" placeholder="A short summary readers will see"></textarea>
+              </label>
+            </div>
+            <div class="mt-5 flex justify-end">
+              <button type="submit" class="submit-btn inline-flex items-center gap-2 rounded-xl bg-ink-800 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-ink-700 active:scale-[.98] disabled:opacity-60">Add book</button>
+            </div>
+          </form>
+
+          <div class="mb-4 mt-10 flex items-end justify-between">
+            <h3 class="font-display text-lg font-bold">Catalogue <span id="count-books" class="ml-1 text-sm font-medium text-ink-700/60"></span></h3>
+            <button data-refresh="books" class="rounded-lg px-3 py-1.5 text-sm font-medium text-ink-700 transition hover:bg-white">Refresh</button>
+          </div>
+          <div id="list-books" class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3"></div>
+        </section>
+
+        <!-- ================= VIDEOS ================= -->
+        <section id="view-videos" class="view" aria-labelledby="h-videos">
+          <div class="mb-6">
+            <h2 id="h-videos" class="font-display text-3xl font-bold">Manage videos</h2>
+            <p class="mt-1 text-sm text-ink-700/70">Sample chapters that readers can watch before they buy.</p>
+          </div>
+
+          <form id="form-video" class="rounded-3xl border border-line bg-white p-5 shadow-sm sm:p-7">
+            <h3 class="font-display text-lg font-bold">Add a video</h3>
+            <div class="mt-5 grid gap-4 sm:grid-cols-2">
+              <label class="block sm:col-span-2">
+                <span class="mb-1.5 block text-sm font-medium">Video title</span>
+                <input name="title" required class="field" placeholder="Chapter 3: Motion in a straight line">
+              </label>
+              <label class="block">
+                <span class="mb-1.5 block text-sm font-medium">Teacher name</span>
+                <input name="teacher" required class="field" placeholder="Teacher’s full name">
+              </label>
+              <label class="block">
+                <span class="mb-1.5 block text-sm font-medium">Subject</span>
+                <input name="subject" required class="field" placeholder="Physics">
+              </label>
+              <label class="block sm:col-span-2">
+                <span class="mb-1.5 block text-sm font-medium">YouTube URL</span>
+                <input name="url" type="url" required class="field" placeholder="https://www.youtube.com/watch?v=…">
+              </label>
+            </div>
+            <div class="mt-5 flex justify-end">
+              <button type="submit" class="submit-btn inline-flex items-center gap-2 rounded-xl bg-ink-800 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-ink-700 active:scale-[.98] disabled:opacity-60">Add video</button>
+            </div>
+          </form>
+
+          <div class="mb-4 mt-10 flex items-end justify-between">
+            <h3 class="font-display text-lg font-bold">Sample chapters <span id="count-videos" class="ml-1 text-sm font-medium text-ink-700/60"></span></h3>
+            <button data-refresh="videos" class="rounded-lg px-3 py-1.5 text-sm font-medium text-ink-700 transition hover:bg-white">Refresh</button>
+          </div>
+          <div id="list-videos"></div>
+        </section>
+
+        <!-- ================= MESSAGES ================= -->
+        <section id="view-messages" class="view" aria-labelledby="h-messages">
+          <div class="mb-6 flex items-end justify-between gap-4">
+            <div>
+              <h2 id="h-messages" class="font-display text-3xl font-bold">Messages</h2>
+              <p class="mt-1 text-sm text-ink-700/70">Enquiries sent from the website contact form.</p>
+            </div>
+            <button data-refresh="messages" class="rounded-lg px-3 py-1.5 text-sm font-medium text-ink-700 transition hover:bg-white">Refresh</button>
+          </div>
+          <div id="list-messages" class="grid gap-5 md:grid-cols-2"></div>
+        </section>
+
+        <!-- ================= CONTACT DETAILS ================= -->
+        <section id="view-contact" class="view" aria-labelledby="h-contact">
+          <div class="mb-6">
+            <h2 id="h-contact" class="font-display text-3xl font-bold">Contact details</h2>
+            <p class="mt-1 text-sm text-ink-700/70">These show on your website in the contact cards, footer and WhatsApp buttons. Save once and the site updates.</p>
+          </div>
+
+          <form id="form-contact" class="rounded-3xl border border-line bg-white p-5 shadow-sm sm:p-7" novalidate>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div class="sm:col-span-2">
+                <div class="mb-1.5 flex items-center justify-between"><span class="text-sm font-medium">Email</span><button type="button" data-clear-field="contact_email" class="rounded-lg px-2 py-0.5 text-xs font-semibold text-rose hover:bg-rose/10">Delete</button></div>
+                <input name="contact_email" type="email" class="field" placeholder="info@yourpublication.com" autocomplete="off">
+              </div>
+              <div>
+                <div class="mb-1.5 flex items-center justify-between"><span class="text-sm font-medium">Phone 1</span><button type="button" data-clear-field="contact_phone" class="rounded-lg px-2 py-0.5 text-xs font-semibold text-rose hover:bg-rose/10">Delete</button></div>
+                <input name="contact_phone" type="tel" class="field" placeholder="+91 98765 43210" autocomplete="off">
+              </div>
+              <div>
+                <div class="mb-1.5 flex items-center justify-between"><span class="text-sm font-medium">Phone 2 <span class="font-normal text-ink-700/60">(optional)</span></span><button type="button" data-clear-field="contact_phone2" class="rounded-lg px-2 py-0.5 text-xs font-semibold text-rose hover:bg-rose/10">Delete</button></div>
+                <input name="contact_phone2" type="tel" class="field" placeholder="+91 98765 43211" autocomplete="off">
+              </div>
+              <div class="sm:col-span-2">
+                <div class="mb-1.5 flex items-center justify-between"><span class="text-sm font-medium">WhatsApp number</span><button type="button" data-clear-field="whatsapp_number" class="rounded-lg px-2 py-0.5 text-xs font-semibold text-rose hover:bg-rose/10">Delete</button></div>
+                <input name="whatsapp_number" type="tel" class="field" placeholder="919876543210" autocomplete="off">
+                <span class="mt-1.5 block text-xs text-ink-700/60">With country code, for example 919876543210. If you type a 10-digit number, 91 is added for you. Cart orders go to this number.</span>
+              </div>
+              <div class="sm:col-span-2">
+                <div class="mb-1.5 flex items-center justify-between"><span class="text-sm font-medium">Address <span class="font-normal text-ink-700/60">(optional)</span></span><button type="button" data-clear-field="contact_address" class="rounded-lg px-2 py-0.5 text-xs font-semibold text-rose hover:bg-rose/10">Delete</button></div>
+                <textarea name="contact_address" rows="2" class="field resize-y" placeholder="Shop / office address" autocomplete="off"></textarea>
+              </div>
+              <div class="sm:col-span-2">
+                <div class="mb-1.5 flex items-center justify-between"><span class="text-sm font-medium">Working hours <span class="font-normal text-ink-700/60">(optional)</span></span><button type="button" data-clear-field="working_hours" class="rounded-lg px-2 py-0.5 text-xs font-semibold text-rose hover:bg-rose/10">Delete</button></div>
+                <input name="working_hours" type="text" class="field" placeholder="Mon–Sat, 10 AM – 6 PM" autocomplete="off">
+              </div>
+            </div>
+            <p id="contact-status" class="mt-4 min-h-[1.25rem] text-sm text-rose" role="status"></p>
+            <div class="mt-2 flex flex-wrap items-center justify-between gap-3">
+              <button type="button" id="contact-delete-all" class="rounded-xl border border-rose/30 px-4 py-2.5 text-sm font-semibold text-rose transition hover:bg-rose/10 active:scale-[.98]">Delete all contact details</button>
+              <button type="submit" class="submit-btn inline-flex items-center gap-2 rounded-xl bg-ink-800 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-ink-700 active:scale-[.98] disabled:opacity-60">Save contact details</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- ================= SETUP HELP ================= -->
+        <section id="view-setup" class="view" aria-labelledby="h-setup">
+          <div class="mb-6 flex items-end justify-between gap-4">
+            <div>
+              <h2 id="h-setup" class="font-display text-3xl font-bold">Setup help</h2>
+              <p class="mt-1 text-sm text-ink-700/70">Checks that each table can be reached, and shows how to fix anything that can’t.</p>
+            </div>
+            <button data-refresh="setup" class="rounded-lg px-3 py-1.5 text-sm font-medium text-ink-700 transition hover:bg-white">Check again</button>
+          </div>
+
+          <div id="health-cards" class="grid gap-4 md:grid-cols-3"></div>
+
+          <div class="mt-8 rounded-3xl border border-line bg-white p-5 shadow-sm sm:p-7">
+            <h3 class="font-display text-lg font-bold">Fix it with one SQL script</h3>
+            <ol class="mt-3 list-decimal space-y-1.5 pl-5 text-sm text-ink-800/85">
+              <li>Open your project in the Supabase dashboard, go to <strong>SQL Editor</strong> and choose <strong>New query</strong>.</li>
+              <li>Copy the script below, paste it in and press <strong>Run</strong>.</li>
+              <li>Come back here and press <strong>Check again</strong>.</li>
+            </ol>
+            <label class="mt-4 block">
+              <span class="mb-1.5 block text-sm font-medium">Admin email <span class="font-normal text-ink-700/60">(only this account can add or delete)</span></span>
+              <input id="admin-email" type="email" class="field" placeholder="you@example.com" autocomplete="off">
+            </label>
+            <div class="relative mt-4">
+              <button type="button" data-copy-sql class="absolute right-3 top-3 rounded-lg bg-white/15 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/25">Copy SQL</button>
+              <pre id="health-sql" class="max-h-80 overflow-auto rounded-2xl bg-ink-900 p-4 pr-24 text-xs leading-relaxed text-white/85"></pre>
+            </div>
+            <p class="mt-4 rounded-2xl bg-saffron-500/10 px-4 py-3 text-sm text-ink-800">After you run this script, only the admin email above can add or delete books, videos and cover images and read messages. Visitors can still see books and videos and can still send you a message from the chatbot. For extra safety, turn off “Allow new users to sign up” in Supabase under Authentication → Sign In / Providers.</p>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- Mobile bottom tabs -->
+      <nav class="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-line bg-white/95 px-2 pb-[max(.5rem,env(safe-area-inset-bottom))] pt-2 backdrop-blur lg:hidden" aria-label="Sections">
+        <button data-tab="books" class="tab-btn flex flex-col items-center gap-1 rounded-xl py-1.5 text-xs font-medium text-ink-700/60">
+          <span class="tab-pill h-1 w-6 rounded-full bg-transparent transition-colors"></span>Books
+        </button>
+        <button data-tab="videos" class="tab-btn flex flex-col items-center gap-1 rounded-xl py-1.5 text-xs font-medium text-ink-700/60">
+          <span class="tab-pill h-1 w-6 rounded-full bg-transparent transition-colors"></span>Videos
+        </button>
+        <button data-tab="messages" class="tab-btn flex flex-col items-center gap-1 rounded-xl py-1.5 text-xs font-medium text-ink-700/60">
+          <span class="tab-pill h-1 w-6 rounded-full bg-transparent transition-colors"></span>Messages
+        </button>
+        <button data-tab="contact" class="tab-btn flex flex-col items-center gap-1 rounded-xl py-1.5 text-xs font-medium text-ink-700/60">
+          <span class="tab-pill h-1 w-6 rounded-full bg-transparent transition-colors"></span>Contact
+        </button>
+        <button data-tab="setup" class="tab-btn flex flex-col items-center gap-1 rounded-xl py-1.5 text-xs font-medium text-ink-700/60">
+          <span class="tab-pill h-1 w-6 rounded-full bg-transparent transition-colors"></span>Setup
+        </button>
+      </nav>
+    </div>
+
+    <!-- Delete confirmation -->
+    <div id="confirm" class="fixed inset-0 z-40 hidden items-center justify-center bg-ink-900/50 px-5 opacity-0 backdrop-blur-sm transition-opacity duration-200" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+      <div id="confirm-panel" class="w-full max-w-sm scale-95 rounded-3xl bg-white p-6 shadow-2xl transition-transform duration-200">
+        <h3 id="confirm-title" class="font-display text-xl font-bold">Delete this item?</h3>
+        <p id="confirm-text" class="mt-2 text-sm text-ink-700/80"></p>
+        <div class="mt-6 flex justify-end gap-2">
+          <button id="confirm-cancel" class="rounded-xl px-4 py-2.5 text-sm font-semibold text-ink-700 transition hover:bg-mist">Keep it</button>
+          <button id="confirm-ok" class="rounded-xl bg-rose px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 active:scale-[.98]">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toasts -->
+    <div id="toasts" class="pointer-events-none fixed bottom-24 right-4 z-50 flex flex-col items-end gap-2 lg:bottom-6 lg:right-6"></div>
+  </div>
+</template>
+
+<script>
+/* =====================================================================
+   CONFIG
+   ===================================================================== */
+const SUPABASE_URL      = 'https://urfaixbtslvzahdlugzw.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_F41ikoFdqfqxUhBs9ijMZg_-SE04sGU';
+const KEY_PLACEHOLDER   = 'YOUR_SUPABASE_ANON_KEY'; // used only to detect a missing key
+
+/* Column names in your Supabase tables. Rename here if yours differ. */
+const SCHEMA = {
+  pk: 'id',
+  books:    { table: 'books',    title: 'title', description: 'description', cover: 'image_url', author: 'author', subject: 'subject', price: 'price', in_stock: 'in_stock' },
+  videos:   { table: 'videos',   title: 'title', teacher: 'teacher', subject: 'subject', url: 'video_url' },
+  messages: { table: 'messages', name: 'name', contact: 'contact_info', text: 'message_text' }
+};
+
+/* Some preview windows can't pass a Headers object between frames (DataCloneError).
+   This wrapper turns headers into a plain object before the request is sent. */
+function safeFetch(input, init) {
+  const opts = Object.assign({}, init || {});
+  const h = opts.headers;
+  if (h && !Array.isArray(h) && typeof h.forEach === 'function') {
+    const plain = {};
+    h.forEach((value, key) => { plain[key] = value; });
+    opts.headers = plain;
+  }
+  delete opts.signal;
+  const url = (typeof input === 'string') ? input : String((input && input.url) || input);
+  return fetch(url, opts);
 }
-async function save(e) {
-  e.preventDefault(); $("save").disabled = true;
-  let url = editing ? editing.cover_url : null; const f = $("file").files[0];
-  if (f) { const path = Date.now() + "-" + f.name.replace(/[^\w.]/g, "_"); const up = await db.storage.from("covers").upload(path, f);
-    if (up.error) { say(up.error.message); $("save").disabled = false; return; } url = db.storage.from("covers").getPublicUrl(path).data.publicUrl; }
-  const row = { title:$("t").value.trim(), author:$("a").value.trim(), cls:$("c").value.trim(), subject:$("s").value.trim(), price:+$("p").value, description:$("d").value.trim(), color:$("col").value, in_stock:$("st").checked, cover_url:url };
-  let r;
-  if (editing) r = await db.from("books").update(row).eq("id", editing.id);
-  else { row.slug = slugify(row.title) + "-" + Math.random().toString(36).slice(2, 6); r = await db.from("books").insert(row); }
-  if (r.error) { say(r.error.message); $("save").disabled = false; return; }
-  say("Saved"); editing = null; panel();
+
+const db = (window.supabase && window.supabase.createClient)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { global: { fetch: safeFetch } })
+  : null;
+function client() {
+  if (!db) throw new Error('supabase-lib-missing');
+  return db;
 }
-function sitemap() {
-  const u = [SITE.domain + "/", ...books.map(b => `${SITE.domain}/book.html?s=${encodeURIComponent(b.slug)}`)];
-  const xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + u.map(x => `<url><loc>${x.replace(/&/g, "&amp;")}</loc></url>`).join("\n") + "\n</urlset>";
-  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([xml], { type: "application/xml" })); a.download = "sitemap.xml"; a.click();
+
+/* =====================================================================
+   SUPABASE DATA LAYER (insert / fetch / delete for all three tables)
+   ===================================================================== */
+async function fetchRows(table) {
+  let { data, error } = await client().from(table).select('*').order(SCHEMA.pk, { ascending: false });
+  if (error && error.code === '42703') {               // no "id" column to sort by: load unsorted
+    ({ data, error } = await client().from(table).select('*'));
+  }
+  if (error) throw error;
+  return data || [];
 }
-</script></body></html>
+async function insertRow(table, payload) {
+  const { error } = await client().from(table).insert([payload]);
+  if (error) throw error;
+}
+async function deleteRow(table, id) {
+  const { error } = await client().from(table).delete().eq(SCHEMA.pk, id);
+  if (error) throw error;
+}
+
+// Books
+const fetchBooks  = () => fetchRows(SCHEMA.books.table);
+const isMissingColumn = (err) => !!err && (err.code === 'PGRST204' || err.code === '42703' || /could not find the .* column|schema cache|column .* does not exist/i.test(String(err.message || '')));
+
+// Saves the book. If the table is missing the newer columns (author, subject, in_stock, price),
+// it still saves the core fields so the book always reaches the website.
+async function insertBook(v) {
+  const B = SCHEMA.books;
+  const core = { [B.title]: v.title, [B.description]: v.description, [B.cover]: v.cover };
+  const price = v.price === '' ? null : Number(v.price);
+  const tries = [
+    { row: { ...core, [B.author]: v.author, [B.subject]: v.subject, [B.price]: price, [B.in_stock]: v.in_stock !== 'false' }, note: '' },
+    { row: { ...core, [B.price]: price }, note: 'Book saved, but author, subject and stock were not saved because those columns are missing. Run the SQL in Setup help to add them.' },
+    { row: core, note: 'Book saved, but price, author, subject and stock were not saved because those columns are missing. Run the SQL in Setup help to add them.' }
+  ];
+  let lastErr;
+  for (const t of tries) {
+    try { await insertRow(B.table, t.row); return t.note; }
+    catch (err) { lastErr = err; if (!isMissingColumn(err)) throw err; }
+  }
+  throw lastErr;
+}
+const deleteBook  = (id) => deleteRow(SCHEMA.books.table, id);
+
+// Videos
+const fetchVideos = () => fetchRows(SCHEMA.videos.table);
+const insertVideo = (v) => insertRow(SCHEMA.videos.table, {
+  [SCHEMA.videos.title]: v.title,
+  [SCHEMA.videos.teacher]: v.teacher,
+  [SCHEMA.videos.subject]: v.subject,
+  [SCHEMA.videos.url]: v.url
+});
+const deleteVideo = (id) => deleteRow(SCHEMA.videos.table, id);
+
+// Messages (read and delete; messages arrive from the public site)
+const fetchMessages = () => fetchRows(SCHEMA.messages.table);
+const insertMessage = (v) => insertRow(SCHEMA.messages.table, {
+  [SCHEMA.messages.name]: v.name,
+  [SCHEMA.messages.contact]: v.contact,
+  [SCHEMA.messages.text]: v.text
+});
+const deleteMessage = (id) => deleteRow(SCHEMA.messages.table, id);
+
+/* =====================================================================
+   HELPERS
+   ===================================================================== */
+const $  = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+
+function esc(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+}
+function safeUrl(value) {
+  try {
+    const u = new URL(String(value));
+    return (u.protocol === 'http:' || u.protocol === 'https:') ? u.href : '#';
+  } catch { return '#'; }
+}
+function youtubeId(url) {
+  try {
+    const u = new URL(url);
+    if (u.hostname === 'youtu.be') return u.pathname.slice(1);
+    if (u.pathname.startsWith('/embed/') || u.pathname.startsWith('/shorts/')) return u.pathname.split('/')[2];
+    return u.searchParams.get('v') || '';
+  } catch { return ''; }
+}
+function formatDate(value) {
+  if (!value) return '';
+  const d = new Date(value);
+  return isNaN(d) ? '' : d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+}
+function initials(name) {
+  const parts = String(name || '?').trim().split(/\s+/).slice(0, 2);
+  return parts.map(p => p[0]?.toUpperCase() || '').join('') || '?';
+}
+function contactHref(contact) {
+  const c = String(contact || '').trim();
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c)) return 'mailto:' + c;
+  if (/^[+\d][\d\s\-()]{6,}$/.test(c)) return 'tel:' + c.replace(/[^\d+]/g, '');
+  return '';
+}
+function friendlyError(err) {
+  if (!err) return 'Something went wrong.';
+  if (/DataCloneError|could not be cloned/i.test(String(err.name || '') + ' ' + String(err.message || ''))) return 'This preview window blocks database requests. Download admin.html and open it in your own browser (or host it), then try again.';
+  if (err.message === 'supabase-lib-missing') return 'The Supabase library didn’t load. Check your internet connection, turn off any ad blocker, then reload the page.';
+  if (SUPABASE_ANON_KEY === KEY_PLACEHOLDER) return 'Add your Supabase anon key to connect.';
+  if (err.code === '42501' || /row-level security/i.test(err.message || '')) return 'Supabase blocked this. Open Setup help and run the SQL script to add the missing access rules.';
+  if (err.code === '42P01' || err.code === 'PGRST205') return 'That table doesn’t exist in Supabase, or its name is spelled differently. Open Setup help and run the SQL script to create it.';
+  if (/failed to fetch|networkerror|load failed/i.test(err.message || '')) return 'Couldn’t reach Supabase. Check your internet connection and that the project is not paused in the Supabase dashboard.';
+  if (err.status === 401 || /invalid api key|invalid jwt|apikey/i.test(err.message || '')) return 'Supabase rejected the key. Check SUPABASE_URL and SUPABASE_ANON_KEY.';
+  if (err.code === 'PGRST204' || err.code === '42703') return 'A column is missing or named differently. Run the SQL script in Setup help to add it, or change the name in SCHEMA at the top of the script.';
+  return err.message || 'Something went wrong.';
+}
+
+/* Toasts */
+function toast(message, type = 'success') {
+  const holder = $('#toasts');
+  if (!holder) return;
+  const el = document.createElement('div');
+  const tone = type === 'error' ? 'bg-rose' : 'bg-ink-800';
+  el.className = `pointer-events-auto max-w-xs translate-y-2 rounded-xl ${tone} px-4 py-3 text-sm font-medium text-white opacity-0 shadow-lg transition duration-300`;
+  el.textContent = message;
+  holder.appendChild(el);
+  requestAnimationFrame(() => el.classList.remove('translate-y-2', 'opacity-0'));
+  setTimeout(() => {
+    el.classList.add('opacity-0', 'translate-y-2');
+    setTimeout(() => el.remove(), 300);
+  }, 3600);
+}
+
+/* Confirm dialog (promise based) */
+function confirmDelete(text) {
+  return new Promise(resolve => {
+    const wrap = $('#confirm'), panel = $('#confirm-panel');
+    $('#confirm-text').textContent = text;
+    wrap.classList.remove('hidden'); wrap.classList.add('flex');
+    requestAnimationFrame(() => { wrap.classList.remove('opacity-0'); panel.classList.remove('scale-95'); });
+    $('#confirm-cancel').focus();
+
+    const close = (result) => {
+      wrap.classList.add('opacity-0'); panel.classList.add('scale-95');
+      setTimeout(() => { wrap.classList.add('hidden'); wrap.classList.remove('flex'); }, 200);
+      $('#confirm-ok').onclick = $('#confirm-cancel').onclick = wrap.onclick = null;
+      document.removeEventListener('keydown', onKey);
+      resolve(result);
+    };
+    const onKey = (e) => { if (e.key === 'Escape') close(false); };
+    document.addEventListener('keydown', onKey);
+    $('#confirm-ok').onclick = () => close(true);
+    $('#confirm-cancel').onclick = () => close(false);
+    wrap.onclick = (e) => { if (e.target === wrap) close(false); };
+  });
+}
+
+/* Skeletons, empty and error states */
+const skeleton = (n, cls) => Array.from({ length: n }, () => `<div class="skeleton ${cls}"></div>`).join('');
+const emptyState = (title, hint) => `
+  <div class="col-span-full rounded-3xl border border-dashed border-line bg-white/60 px-6 py-14 text-center">
+    <p class="font-display text-lg font-bold">${esc(title)}</p>
+    <p class="mt-1 text-sm text-ink-700/70">${esc(hint)}</p>
+  </div>`;
+const errorState = (err, retryKey) => {
+  console.error('[Vidyasparsh admin] Load failed: ' + ((err && (err.message || err.code)) || JSON.stringify(err)));
+  const detail = [err && err.code, err && err.message].filter(Boolean).join(' · ');
+  return `
+  <div class="col-span-full rounded-3xl border border-rose/30 bg-rose/5 px-6 py-10 text-center">
+    <p class="font-display text-lg font-bold text-rose">Couldn’t load this list</p>
+    <p class="mx-auto mt-1 max-w-md text-sm text-ink-800/80">${esc(friendlyError(err))}</p>
+    ${detail ? `<p class="mx-auto mt-2 max-w-md break-words text-xs text-ink-700/60">Details: ${esc(detail)}</p>` : ''}
+    <button data-refresh="${retryKey}" class="mt-4 rounded-xl bg-ink-800 px-4 py-2 text-sm font-semibold text-white hover:bg-ink-700">Try again</button>
+    <button data-goto="setup" class="ml-2 mt-4 rounded-xl border border-line bg-white px-4 py-2 text-sm font-semibold text-ink-800 hover:bg-mist">Open setup help</button>
+  </div>`;
+};
+
+const trashIcon = `<svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 7h14M10 11v6m4-6v6M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7m-8 0 .7 11.2A1.8 1.8 0 0 0 9.5 20h5a1.8 1.8 0 0 0 1.8-1.8L17 7"/></svg>`;
+const deleteBtn = (kind, id, extra = '') => `
+  <button data-delete="${kind}" data-id="${esc(id)}" ${extra} class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold text-rose transition hover:bg-rose/10 active:scale-95">${trashIcon}Delete</button>`;
+
+/* =====================================================================
+   LIST LOADERS + RENDERERS
+   ===================================================================== */
+async function loadBooks() {
+  const box = $('#list-books'); if (!box) return;
+  box.innerHTML = skeleton(3, 'h-72');
+  try {
+    const rows = await fetchBooks();
+    $('#count-books').textContent = rows.length ? `(${rows.length})` : '';
+    box.innerHTML = rows.length ? rows.map(bookCard).join('') : emptyState('No books yet', 'Use the form above to add your first title.');
+  } catch (err) { box.innerHTML = errorState(err, 'books'); }
+}
+function bookCard(b) {
+  const S = SCHEMA.books;
+  return `
+  <article class="group flex flex-col overflow-hidden rounded-3xl border border-line bg-white shadow-sm transition hover:shadow-md">
+    <div class="aspect-[16/10] overflow-hidden bg-mist">
+      <img src="${esc(safeUrl(b[S.cover]))}" alt="Cover of ${esc(b[S.title])}" loading="lazy" data-fallback class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]">
+    </div>
+    <div class="flex flex-1 flex-col p-5">
+      <div class="flex items-start justify-between gap-3">
+        <h4 class="font-display text-lg font-bold leading-snug">${esc(b[S.title])}</h4>
+        ${b[S.price] != null && b[S.price] !== '' ? `<span class="shrink-0 font-display text-lg font-bold text-ink-800">₹${esc(b[S.price])}</span>` : ''}
+      </div>
+      ${b[S.author] ? `<p class="mt-0.5 text-sm text-ink-700/70">by ${esc(b[S.author])}</p>` : ''}
+      <div class="mt-2.5 flex flex-wrap gap-2">
+        ${b[S.subject] ? `<span class="rounded-full bg-saffron-500/15 px-2.5 py-1 text-xs font-semibold text-ink-800">${esc(b[S.subject])}</span>` : ''}
+        ${b[S.in_stock] === false
+          ? '<span class="rounded-full bg-rose/10 px-2.5 py-1 text-xs font-semibold text-rose">Out of stock</span>'
+          : '<span class="rounded-full bg-teal/10 px-2.5 py-1 text-xs font-semibold text-teal">In stock</span>'}
+      </div>
+      <p class="mt-3 line-clamp-3 text-sm text-ink-700/75">${esc(b[S.description])}</p>
+      <div class="mt-auto flex items-center justify-end gap-2 pt-4">
+        ${deleteBtn('books', b[SCHEMA.pk], `data-label="${esc(b[S.title])}"`)}
+      </div>
+    </div>
+  </article>`;
+}
+
+async function loadVideos() {
+  const box = $('#list-videos'); if (!box) return;
+  box.innerHTML = `<div class="grid gap-3">${skeleton(3, 'h-20')}</div>`;
+  try {
+    const rows = await fetchVideos();
+    $('#count-videos').textContent = rows.length ? `(${rows.length})` : '';
+    box.innerHTML = rows.length ? videoTable(rows) : `<div class="grid">${emptyState('No videos yet', 'Paste a YouTube link above to add a sample chapter.')}</div>`;
+  } catch (err) { box.innerHTML = `<div class="grid">${errorState(err, 'videos')}</div>`; }
+}
+function videoTable(rows) {
+  const S = SCHEMA.videos;
+  const body = rows.map(v => {
+    const id = youtubeId(v[S.url]);
+    const thumb = id ? `https://i.ytimg.com/vi/${encodeURIComponent(id)}/mqdefault.jpg` : '';
+    return `
+    <tr class="border-t border-line transition-colors hover:bg-mist/60">
+      <td class="w-32 py-3 pl-5 pr-3">
+        <div class="aspect-video w-28 overflow-hidden rounded-lg bg-mist">
+          ${thumb ? `<img src="${thumb}" alt="" loading="lazy" data-fallback class="h-full w-full object-cover">` : ''}
+        </div>
+      </td>
+      <td class="px-3 py-3"><p class="font-semibold">${esc(v[S.title])}</p></td>
+      <td class="px-3 py-3 text-sm text-ink-700/80">${esc(v[S.teacher])}</td>
+      <td class="px-3 py-3"><span class="rounded-full bg-saffron-500/15 px-2.5 py-1 text-xs font-semibold text-ink-800">${esc(v[S.subject])}</span></td>
+      <td class="px-3 py-3 text-sm"><a href="${esc(safeUrl(v[S.url]))}" target="_blank" rel="noopener noreferrer" class="font-semibold text-ink-700 underline decoration-saffron-500 decoration-2 underline-offset-4 hover:text-ink-900">Watch</a></td>
+      <td class="py-3 pl-3 pr-5 text-right">${deleteBtn('videos', v[SCHEMA.pk], `data-label="${esc(v[S.title])}"`)}</td>
+    </tr>`;
+  }).join('');
+  return `
+  <div class="overflow-hidden rounded-3xl border border-line bg-white shadow-sm">
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-[780px] text-left">
+        <thead class="bg-mist/70 text-xs font-semibold text-ink-700/70">
+          <tr><th class="py-3 pl-5 pr-3">Preview</th><th class="px-3 py-3">Title</th><th class="px-3 py-3">Teacher</th><th class="px-3 py-3">Subject</th><th class="px-3 py-3">Link</th><th class="py-3 pl-3 pr-5 text-right">Action</th></tr>
+        </thead>
+        <tbody>${body}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+async function loadMessages() {
+  const box = $('#list-messages'); if (!box) return;
+  box.innerHTML = skeleton(4, 'h-40');
+  try {
+    const rows = await fetchMessages();
+    const badge = $('#msg-badge');
+    if (badge) { badge.textContent = rows.length; badge.classList.toggle('hidden', !rows.length); }
+    box.innerHTML = rows.length ? rows.map(messageCard).join('') : emptyState('No messages yet', 'Enquiries from your website will show up here.');
+  } catch (err) { box.innerHTML = errorState(err, 'messages'); }
+}
+function messageCard(m) {
+  const S = SCHEMA.messages;
+  const href = contactHref(m[S.contact]);
+  const contact = href
+    ? `<a href="${esc(href)}" class="font-medium text-ink-700 underline decoration-saffron-500 decoration-2 underline-offset-4 hover:text-ink-900">${esc(m[S.contact])}</a>`
+    : `<span class="font-medium text-ink-700">${esc(m[S.contact])}</span>`;
+  const date = formatDate(m.created_at);
+  return `
+  <article class="flex flex-col rounded-3xl border border-line bg-white p-5 shadow-sm transition hover:shadow-md">
+    <div class="flex items-start gap-3">
+      <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ink-800 text-sm font-bold text-saffron-400">${esc(initials(m[S.name]))}</div>
+      <div class="min-w-0 flex-1">
+        <p class="truncate font-display text-base font-bold">${esc(m[S.name])}</p>
+        <p class="truncate text-sm">${contact}</p>
+      </div>
+      ${date ? `<span class="shrink-0 text-xs text-ink-700/60">${esc(date)}</span>` : ''}
+    </div>
+    <p class="mt-4 whitespace-pre-line break-words rounded-2xl bg-mist px-4 py-3 text-sm leading-relaxed text-ink-800">${esc(m[S.text])}</p>
+    <div class="mt-3 flex justify-end">${deleteBtn('messages', m[SCHEMA.pk], `data-label="${esc(m[S.name])}"`)}</div>
+  </article>`;
+}
+
+/* =====================================================================
+   CONNECTION CHECK + SETUP SQL
+   ===================================================================== */
+const TABLE_LABELS = { books: 'Books', videos: 'Videos', messages: 'Messages' };
+
+/* =====================================================================
+   CONTACT DETAILS (table site_settings: key, value)
+   ===================================================================== */
+const SETTINGS_TABLE = 'site_settings';
+const CONTACT_KEYS = ['contact_email', 'contact_phone', 'contact_phone2', 'whatsapp_number', 'contact_address', 'working_hours'];
+const CONTACT_LABELS = { contact_email: 'Email', contact_phone: 'Phone 1', contact_phone2: 'Phone 2', whatsapp_number: 'WhatsApp number', contact_address: 'Address', working_hours: 'Working hours' };
+
+function contactError(err) {
+  const m = String((err && err.message) || '');
+  if (err && (err.code === 'PGRST205' || err.code === '42P01' || /schema cache|does not exist/i.test(m))) return 'The site_settings table is missing. Open Setup help and run the SQL script.';
+  return friendlyError(err);
+}
+async function loadContact() {
+  const form = $('#form-contact'), note = $('#contact-status');
+  if (!form) return;
+  try {
+    const { data, error } = await client().from(SETTINGS_TABLE).select('key,value');
+    if (error) throw error;
+    const map = {};
+    (data || []).forEach(r => { map[r.key] = r.value || ''; });
+    CONTACT_KEYS.forEach(k => { form.elements[k].value = map[k] || ''; });
+    note.textContent = '';
+  } catch (err) {
+    note.textContent = contactError(err);
+  }
+}
+async function saveContact(form) {
+  const v = {};
+  CONTACT_KEYS.forEach(k => { v[k] = form.elements[k].value.trim(); });
+  const bad = (msg) => { const e = new Error(msg); e.validation = true; throw e; };
+  if (v.contact_email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.contact_email)) bad('That email address does not look right.');
+  ['contact_phone', 'contact_phone2'].forEach(k => {
+    if (v[k] && !/^[+\d][\d\s\-()]{5,}$/.test(v[k])) bad('A phone number can only have digits, spaces, + - and brackets.');
+  });
+  let wa = v.whatsapp_number.replace(/\D/g, '');
+  if (wa.length === 10) wa = '91' + wa;
+  if (wa && (wa.length < 11 || wa.length > 15)) bad('Enter the WhatsApp number with country code, like 919876543210.');
+  v.whatsapp_number = wa;
+  const now = new Date().toISOString();
+  // Filled fields are saved (insert or update); emptied fields are removed from the table.
+  const filled = CONTACT_KEYS.filter(k => v[k] !== '');
+  const empty  = CONTACT_KEYS.filter(k => v[k] === '');
+  if (filled.length) {
+    const { error } = await client().from(SETTINGS_TABLE).upsert(filled.map(k => ({ key: k, value: v[k], updated_at: now })), { onConflict: 'key' });
+    if (error) throw error;
+  }
+  if (empty.length) {
+    const { error } = await client().from(SETTINGS_TABLE).delete().in('key', empty);
+    if (error) throw error;
+  }
+  form.elements.whatsapp_number.value = wa;
+}
+// Deletes one or more saved contact fields from Supabase and clears them in the form.
+async function deleteContactKeys(keys) {
+  const { error } = await client().from(SETTINGS_TABLE).delete().in('key', keys);
+  if (error) throw error;
+  const form = $('#form-contact');
+  keys.forEach(k => { if (form && form.elements[k]) form.elements[k].value = ''; });
+}
+
+async function checkTable(key) {
+  const T = SCHEMA[key];
+  const cols = [SCHEMA.pk, ...Object.entries(T).filter(([k]) => k !== 'table').map(([, v]) => v)];
+  try {
+    const { count, error } = await client().from(T.table).select(cols.join(','), { count: 'exact' }).limit(1);
+    if (error) throw error;
+    return { ok: true, count: count ?? 0 };
+  } catch (err) {
+    return { ok: false, err };
+  }
+}
+
+function setHealthDot(state) {
+  const dot = $('#health-dot'); if (!dot) return;
+  dot.className = 'h-2 w-2 rounded-full ' + ({ ok: 'bg-teal', bad: 'bg-rose', checking: 'animate-pulse bg-white/40' }[state] || 'bg-white/30');
+  dot.title = { ok: 'Database connected', bad: 'Database needs fixing: open Setup help', checking: 'Checking database…' }[state] || '';
+}
+
+function healthCard(key, r) {
+  const T = SCHEMA[key];
+  const badge = r.ok
+    ? '<span class="shrink-0 rounded-full bg-teal/10 px-2.5 py-1 text-xs font-semibold text-teal">Working</span>'
+    : '<span class="shrink-0 rounded-full bg-rose/10 px-2.5 py-1 text-xs font-semibold text-rose">Needs fixing</span>';
+  const detail = r.ok ? '' : [r.err && r.err.code, r.err && r.err.message].filter(Boolean).join(' · ');
+  const body = r.ok
+    ? `<p class="mt-3 text-sm text-ink-800/80">Connected. ${r.count} ${r.count === 1 ? 'row' : 'rows'} found.</p>`
+    : `<p class="mt-3 text-sm text-ink-800/85">${esc(friendlyError(r.err))}</p>
+       ${detail ? `<p class="mt-2 break-words text-xs text-ink-700/60">${esc(detail)}</p>` : ''}`;
+  return `
+  <article class="rounded-3xl border border-line bg-white p-5 shadow-sm">
+    <div class="flex items-start justify-between gap-3">
+      <div>
+        <h4 class="font-display text-lg font-bold">${TABLE_LABELS[key]}</h4>
+        <p class="text-xs text-ink-700/60">Table: ${esc(T.table)}</p>
+      </div>
+      ${badge}
+    </div>
+    ${body}
+  </article>`;
+}
+
+async function runHealthCheck() {
+  const box = $('#health-cards'); if (!box) return;
+  const sqlBox = $('#health-sql'); if (sqlBox) sqlBox.textContent = buildSql();
+  box.innerHTML = skeleton(3, 'h-32');
+  setHealthDot('checking');
+  const keys = ['books', 'videos', 'messages'];
+  const results = await Promise.all(keys.map(checkTable));
+  box.innerHTML = keys.map((k, i) => healthCard(k, results[i])).join('');
+  setHealthDot(results.every(r => r.ok) ? 'ok' : 'bad');
+}
+
+// Builds a script that creates missing tables and columns, switches on row-level security,
+// and adds the access rules. It is generated from SCHEMA, so it always matches this page.
+function getAdminEmail() {
+  const el = $('#admin-email');
+  const v = String(el ? el.value : adminEmail || '').trim();
+  return /^[^\s@'"\\;]+@[^\s@'"\\;]+\.[^\s@'"\\;]+$/.test(v) ? v : '';
+}
+
+function buildSql() {
+  const email = getAdminEmail();
+  const isAdmin = email ? `lower(auth.jwt() ->> 'email') = lower('${email}')` : 'true';
+  const pk = SCHEMA.pk;
+  const B = SCHEMA.books, V = SCHEMA.videos, M = SCHEMA.messages;
+  const tables = [
+    { name: B.table, cols: [[B.title, 'text'], [B.description, 'text'], [B.cover, 'text'], [B.author, 'text'], [B.subject, 'text'], [B.price, 'numeric(10,2)'], [B.in_stock, 'boolean default true']] },
+    { name: V.table, cols: [V.title, V.teacher, V.subject, V.url].map(c => [c, 'text']) },
+    { name: M.table, cols: [M.name, M.contact, M.text].map(c => [c, 'text']) }
+  ];
+  const out = ['-- Vidyasparsh: tables, columns and access rules', '-- Safe to run more than once.', email ? `-- Only ${email} can add, delete or read messages.` : '-- No valid admin email entered: any signed-in user can add or delete. Enter it above and copy again.', ''];
+  tables.forEach(t => {
+    out.push(
+      `create table if not exists public.${t.name} (`,
+      `  ${pk} bigint generated always as identity primary key,`,
+      `  created_at timestamptz not null default now()`,
+      `);`
+    );
+    t.cols.forEach(([c, type]) => out.push(`alter table public.${t.name} add column if not exists ${c} ${type};`));
+    out.push(`alter table public.${t.name} enable row level security;`);
+    const isMessages = t.name === M.table;
+    const rules = {
+      // books and videos are public to read; messages are private to the admin
+      select: isMessages ? `to authenticated using (${isAdmin})` : 'to anon, authenticated using (true)',
+      // visitors may send a message through the chatbot, but only the admin adds books and videos
+      insert: isMessages ? 'to anon, authenticated with check (true)' : `to authenticated with check (${isAdmin})`,
+      delete: `to authenticated using (${isAdmin})`
+    };
+    ['select', 'insert', 'delete'].forEach(op => {
+      const policy = `vs_${op}_${t.name}`;
+      out.push(`drop policy if exists "${policy}" on public.${t.name};`);
+      out.push(`create policy "${policy}" on public.${t.name} for ${op} ${rules[op]};`);
+    });
+    out.push('');
+  });
+  out.push(
+    `-- Contact details shown on the website (email, phones, WhatsApp)`,
+    `create table if not exists public.site_settings (`,
+    `  key text primary key,`,
+    `  value text,`,
+    `  updated_at timestamptz not null default now()`,
+    `);`,
+    `alter table public.site_settings enable row level security;`,
+    `drop policy if exists "vs_select_site_settings" on public.site_settings;`,
+    `create policy "vs_select_site_settings" on public.site_settings for select to anon, authenticated using (true);`,
+    `drop policy if exists "vs_insert_site_settings" on public.site_settings;`,
+    `create policy "vs_insert_site_settings" on public.site_settings for insert to authenticated with check (${isAdmin});`,
+    `drop policy if exists "vs_update_site_settings" on public.site_settings;`,
+    `create policy "vs_update_site_settings" on public.site_settings for update to authenticated using (${isAdmin}) with check (${isAdmin});`,
+    `drop policy if exists "vs_delete_site_settings" on public.site_settings;`,
+    `create policy "vs_delete_site_settings" on public.site_settings for delete to authenticated using (${isAdmin});`,
+    `-- Starting values: added ONLY when the table is completely empty, so details you delete`,
+    `-- in admin → Contact details do not come back when this script is run again.`,
+    `insert into public.site_settings (key, value)`,
+    `select k, v from (values`,
+    `  ('contact_email', 'vidyasparsh786@gmail.com'),`,
+    `  ('contact_phone', '+91 78958 03620'),`,
+    `  ('contact_phone2', '+91 93492 46025')`,
+    `) as seed(k, v)`,
+    `where not exists (select 1 from public.site_settings)`,
+    `on conflict (key) do nothing;`,
+    '',
+    `-- Table permissions, so index.html (visitors) and this admin page both work without errors`,
+    `grant usage on schema public to anon, authenticated;`,
+    `grant select on public.${B.table}, public.${V.table}, public.site_settings to anon, authenticated;`,
+    `grant insert on public.${M.table} to anon, authenticated;`,
+    `grant select, insert, update, delete on public.${B.table}, public.${V.table}, public.${M.table}, public.site_settings to authenticated;`,
+    `grant usage, select on all sequences in schema public to anon, authenticated;`,
+    '',
+    `-- Cover images: public storage bucket "${COVER_BUCKET}"`,
+    `insert into storage.buckets (id, name, public) values ('${COVER_BUCKET}', '${COVER_BUCKET}', true)`,
+    `  on conflict (id) do update set public = true;`,
+    `drop policy if exists "vs_cover_read" on storage.objects;`,
+    `create policy "vs_cover_read" on storage.objects for select to anon, authenticated using (bucket_id = '${COVER_BUCKET}');`,
+    `drop policy if exists "vs_cover_upload" on storage.objects;`,
+    `create policy "vs_cover_upload" on storage.objects for insert to authenticated with check (bucket_id = '${COVER_BUCKET}' and ${isAdmin});`,
+    '',
+    `-- Makes Supabase notice the new columns right away`,
+    `notify pgrst, 'reload schema';`
+  );
+  return out.join('\n');
+}
+
+async function copySql(btn) {
+  const text = $('#health-sql').textContent;
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch { /* ignore */ }
+    ta.remove();
+  }
+  btn.textContent = 'Copied';
+  setTimeout(() => { btn.textContent = 'Copy SQL'; }, 1800);
+}
+
+const LOADERS = { books: loadBooks, videos: loadVideos, messages: loadMessages, contact: loadContact, setup: runHealthCheck };
+
+/* =====================================================================
+   COVER UPLOAD (Supabase Storage)
+   ===================================================================== */
+const COVER_BUCKET = 'book-covers';
+const MAX_UPLOAD_MB = 10;
+let coverBusy = false;
+
+// Shrinks big photos to about 900x1200 JPEG so the site stays fast. Falls back to the original file.
+function resizeImage(file, maxW = 900, maxH = 1200) {
+  return new Promise((resolve) => {
+    if (!/^image\/(jpeg|png|webp)$/.test(file.type)) return resolve(file);
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const scale = Math.min(1, maxW / img.width, maxH / img.height);
+      const w = Math.max(1, Math.round(img.width * scale)), h = Math.max(1, Math.round(img.height * scale));
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+      c.toBlob(b => resolve(b && b.size < file.size ? b : file), 'image/jpeg', 0.85);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+    img.src = url;
+  });
+}
+
+async function uploadCover(file) {
+  const blob = await resizeImage(file);
+  const ext = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' }[blob.type] || 'jpg';
+  const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const store = client().storage.from(COVER_BUCKET);
+  const { error } = await store.upload(path, blob, { contentType: blob.type || 'image/jpeg', cacheControl: '31536000', upsert: false });
+  if (error) throw error;
+  return store.getPublicUrl(path).data.publicUrl;
+}
+
+function setupCoverUpload(root) {
+  const form = $('#form-book', root);
+  const fileInput = $('#cover-file', root), pick = $('#cover-pick', root);
+  const status = $('#cover-status', root), preview = $('#cover-preview', root);
+  const urlInput = form.elements['cover'];
+  const hint = status.textContent;
+
+  const showPreview = (url) => {
+    preview.innerHTML = url
+      ? `<img src="${esc(safeUrl(url))}" alt="Cover preview" data-fallback class="h-full w-full object-cover">`
+      : 'No cover yet';
+  };
+  const setStatus = (msg, bad = false) => {
+    status.textContent = msg;
+    status.className = 'mt-2 text-xs ' + (bad ? 'text-rose' : 'text-ink-700/60');
+  };
+
+  pick.addEventListener('click', () => fileInput.click());
+
+  fileInput.addEventListener('change', async () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    if (!/^image\//.test(file.type)) { setStatus('Please choose an image file.', true); fileInput.value = ''; return; }
+    if (file.size > MAX_UPLOAD_MB * 1024 * 1024) { setStatus(`That file is over ${MAX_UPLOAD_MB} MB. Choose a smaller image.`, true); fileInput.value = ''; return; }
+
+    coverBusy = true; pick.disabled = true;
+    setStatus('Uploading…');
+    try {
+      const url = await uploadCover(file);
+      urlInput.value = url;
+      showPreview(url);
+      setStatus('Uploaded. The link is filled in below.');
+      toast('Cover uploaded');
+    } catch (err) {
+      console.error('[Vidyasparsh admin] Cover upload failed', err);
+      let msg = friendlyError(err);
+      if (/bucket not found/i.test(err && err.message || '')) msg = 'The “' + COVER_BUCKET + '” storage bucket doesn’t exist yet. Open Setup help and run the SQL script.';
+      setStatus(msg, true);
+      toast('Upload failed', 'error');
+    } finally {
+      coverBusy = false; pick.disabled = false; fileInput.value = '';
+    }
+  });
+
+  urlInput.addEventListener('change', () => showPreview(urlInput.value.trim()));
+  form.addEventListener('reset', () => { showPreview(''); setStatus(hint); });
+}
+
+/* =====================================================================
+   FORMS
+   ===================================================================== */
+async function handleSubmit(form, label, action, reload, successMsg) {
+  const btn = $('.submit-btn', form);
+  const original = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const data = Object.fromEntries(new FormData(form).entries());
+    Object.keys(data).forEach(k => data[k] = String(data[k]).trim());
+    const note = await action(data);
+    form.reset();
+    if (note) toast(note, 'error'); else toast(successMsg);
+    reload();
+  } catch (err) {
+    toast(friendlyError(err), 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = original;
+  }
+}
+
+/* =====================================================================
+   NAVIGATION + APP MOUNT
+   ===================================================================== */
+function showTab(name) {
+  $$('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
+  $$('[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  $$('.nav-btn').forEach(b => b.setAttribute('aria-current', b.dataset.tab === name ? 'page' : 'false'));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function mountApp() {
+  const root = $('#app');
+  root.appendChild($('#app-template').content.cloneNode(true));
+
+  if (SUPABASE_ANON_KEY === KEY_PLACEHOLDER) $('#key-warning').classList.remove('hidden');
+
+  const emailBox = $('#admin-email', root);
+  emailBox.value = adminEmail;
+  emailBox.addEventListener('input', () => { $('#health-sql').textContent = buildSql(); });
+
+  $$('[data-tab]', root).forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
+  $('#logout', root).addEventListener('click', logout);
+  $('[data-logout]', root).addEventListener('click', logout);
+
+  $('#form-book', root).addEventListener('submit', e => {
+    e.preventDefault();
+    if (coverBusy) { toast('Wait for the cover to finish uploading', 'error'); return; }
+    handleSubmit(e.target, 'book', insertBook, loadBooks, 'Book added');
+  });
+  setupCoverUpload(root);
+  $('#form-contact', root).addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target, btn = $('.submit-btn', form), original = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Saving…';
+    try {
+      await saveContact(form);
+      $('#contact-status').textContent = '';
+      toast('Contact details saved');
+    } catch (err) {
+      toast(err.validation ? err.message : contactError(err), 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = original;
+    }
+  });
+  $('#form-video', root).addEventListener('submit', e => {
+    e.preventDefault();
+    handleSubmit(e.target, 'video', insertVideo, loadVideos, 'Video added');
+  });
+
+  // Delegated clicks: refresh + delete
+  root.addEventListener('click', async (e) => {
+    const refresh = e.target.closest('[data-refresh]');
+    if (refresh) { LOADERS[refresh.dataset.refresh](); return; }
+
+    const go = e.target.closest('[data-goto]');
+    if (go) { showTab(go.dataset.goto); return; }
+
+    const clearField = e.target.closest('[data-clear-field]');
+    if (clearField) {
+      const k = clearField.dataset.clearField;
+      const ok = await confirmDelete(`“${CONTACT_LABELS[k] || k}” will be removed from Supabase and from your website.`);
+      if (!ok) return;
+      try { await deleteContactKeys([k]); toast(`${CONTACT_LABELS[k] || 'Detail'} deleted`); }
+      catch (err) { toast(contactError(err), 'error'); }
+      return;
+    }
+    if (e.target.closest('#contact-delete-all')) {
+      const ok = await confirmDelete('All contact details (email, phones, WhatsApp, address, hours) will be removed from Supabase and from your website.');
+      if (!ok) return;
+      try { await deleteContactKeys(CONTACT_KEYS); toast('All contact details deleted'); }
+      catch (err) { toast(contactError(err), 'error'); }
+      return;
+    }
+
+    const copy = e.target.closest('[data-copy-sql]');
+    if (copy) { copySql(copy); return; }
+
+    const del = e.target.closest('[data-delete]');
+    if (!del) return;
+    const kind = del.dataset.delete, id = del.dataset.id, label = del.dataset.label || 'this item';
+    const ok = await confirmDelete(`“${label}” will be removed from Supabase. This can’t be undone.`);
+    if (!ok) return;
+    del.disabled = true;
+    try {
+      if (kind === 'books') await deleteBook(id);
+      if (kind === 'videos') await deleteVideo(id);
+      if (kind === 'messages') await deleteMessage(id);
+      toast('Deleted');
+      LOADERS[kind]();
+    } catch (err) {
+      del.disabled = false;
+      toast(friendlyError(err), 'error');
+    }
+  });
+
+  showTab('books');
+  loadBooks(); loadVideos(); loadMessages(); loadContact();
+  runHealthCheck();
+}
+
+function unmountApp() { $('#app').innerHTML = ''; }
+
+/* =====================================================================
+   LOGIN (Supabase Auth)
+   ===================================================================== */
+const lock = $('#lock');
+const loginForm = $('#login-form');
+const loginError = $('#login-error');
+const loginBtn = $('#login-submit');
+let adminEmail = '';
+
+function showLock() {
+  unmountApp();
+  lock.classList.remove('hidden');
+  requestAnimationFrame(() => {
+    lock.classList.remove('opacity-0', 'pointer-events-none');
+    $('#login-password').value = '';
+    ($('#login-email').value ? $('#login-password') : $('#login-email')).focus();
+  });
+}
+function hideLock() {
+  lock.classList.add('opacity-0', 'pointer-events-none');
+  setTimeout(() => lock.classList.add('hidden'), 500);
+}
+function enterApp(session) {
+  if ($('#app').childElementCount) return;
+  adminEmail = (session && session.user && session.user.email) || '';
+  mountApp();
+  hideLock();
+}
+function loginMessage(err) {
+  const m = String((err && err.message) || '');
+  if (m === 'supabase-lib-missing') return friendlyError(err);
+  if (/invalid login|invalid credentials/i.test(m)) return 'Wrong email or password.';
+  if (/email not confirmed/i.test(m)) return 'This email is not confirmed. In Supabase, open the user and confirm it.';
+  if (/rate limit|too many/i.test(m)) return 'Too many attempts. Wait a minute and try again.';
+  return m || 'Could not sign in. Please try again.';
+}
+
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = $('#login-email').value.trim(), password = $('#login-password').value;
+  if (!email || !password) { loginError.textContent = 'Enter your email and password.'; return; }
+  loginBtn.disabled = true; loginBtn.textContent = 'Signing in…'; loginError.textContent = '';
+  try {
+    const { data, error } = await client().auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    enterApp(data.session);
+  } catch (err) {
+    loginError.textContent = loginMessage(err);
+    const card = $('#lock-card');
+    card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake');
+    $('#login-password').value = ''; $('#login-password').focus();
+  } finally {
+    loginBtn.disabled = false; loginBtn.textContent = 'Sign in';
+  }
+});
+
+async function logout() {
+  try { await client().auth.signOut(); } catch { /* ignore */ }
+  showLock();
+}
+
+// Stay signed in after a refresh, and lock the screen if the session ends
+if (db) {
+  db.auth.getSession().then(({ data }) => { if (data && data.session) enterApp(data.session); }).catch(() => {});
+  db.auth.onAuthStateChange((event) => { if (event === 'SIGNED_OUT' && $('#app').childElementCount) showLock(); });
+}
+$('#login-email').focus();
+
+/* Image fallback (covers and thumbnails that fail to load) */
+document.addEventListener('error', (e) => {
+  const img = e.target;
+  if (img.tagName === 'IMG' && img.hasAttribute('data-fallback')) {
+    img.removeAttribute('data-fallback');
+    img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 100"><rect width="160" height="100" fill="#E7EAF4"/><path d="M62 62l14-16 12 12 8-8 12 12H62z" fill="#B9C0DC"/><circle cx="70" cy="40" r="6" fill="#B9C0DC"/></svg>');
+  }
+}, true);
+</script>
+</body>
+</html>
