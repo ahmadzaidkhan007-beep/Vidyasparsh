@@ -637,6 +637,24 @@ Deoband, Saharanpur</p>
     </div>
   </aside>
 
+  <!-- ============ BOOK DETAILS MODAL ============ -->
+  <div id="book-modal" class="no-print fixed inset-0 z-[90] hidden items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Book details">
+    <div class="solid-glass relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl p-5 sm:p-7">
+      <button id="book-close" type="button" aria-label="Close details" class="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-xl bg-slate-900/5 text-slate-700 hover:bg-slate-900/10 dark:bg-white/10 dark:text-white">&times;</button>
+      <div class="grid gap-5 sm:grid-cols-[10rem_1fr]">
+        <div id="book-cover" class="aspect-[3/4] w-40 max-w-full overflow-hidden rounded-2xl bg-slate-200 shadow-md dark:bg-white/5"></div>
+        <div class="min-w-0">
+          <h3 id="book-name" class="font-display pr-10 text-2xl font-bold leading-snug text-slate-900 dark:text-white"></h3>
+          <dl id="book-facts" class="mt-4 grid grid-cols-2 gap-3 text-sm"></dl>
+          <p id="book-desc" class="mt-4 text-sm leading-relaxed text-slate-600 dark:text-slate-400"></p>
+          <div class="mt-5 flex flex-wrap gap-2">
+            <button id="book-add" type="button" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-700">Add to cart</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ============ VIDEO MODAL ============ -->
   <div id="video-modal" class="no-print fixed inset-0 z-[90] hidden items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Sample chapter video">
     <div class="w-full max-w-3xl">
@@ -882,12 +900,13 @@ Deoband, Saharanpur</p>
         </div>
         <div class="flex flex-1 flex-col px-1 pb-1 pt-5">
           <h3 class="font-display text-xl font-bold leading-snug text-slate-900 dark:text-white">${title}</h3>
+          ${(book.author || book.class_name) ? `<p class="mt-1 text-sm font-semibold text-indigo-600 dark:text-amber-300">${[book.class_name, book.author && ('by ' + book.author)].filter(Boolean).map(escapeHtml).join(' · ')}</p>` : ''}
           ${desc ? `<p class="mt-2 line-clamp-3 text-sm leading-relaxed text-slate-600 dark:text-slate-400">${desc}</p>` : ''}
           <div class="mt-auto flex flex-wrap items-center gap-2 pt-5">
             <button type="button" data-add="${index}" data-key="${escapeHtml(bookKey(book))}" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-700">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg> Add to cart
             </button>
-            ${link ? `<a href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900/5 px-4 py-2.5 text-sm font-bold text-slate-800 transition hover:bg-slate-900/10 dark:bg-white/10 dark:text-white">View <i data-lucide="arrow-up-right" class="h-4 w-4"></i></a>` : ''}
+            <button type="button" data-view="${index}" data-key="${escapeHtml(bookKey(book))}" class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900/5 px-4 py-2.5 text-sm font-bold text-slate-800 transition hover:bg-slate-900/10 dark:bg-white/10 dark:text-white">View</button>
           </div>
         </div>`;
 
@@ -928,7 +947,45 @@ Deoband, Saharanpur</p>
       }
     }
 
+    /* ---------- Book details popup (View) ---------- */
+    const bookModal = $('#book-modal');
+    let modalBook = null;
+    function findBook(btn) { return booksCache.find(b => bookKey(b) === btn.dataset.key) || booksCache[Number(btn.dataset.view ?? btn.dataset.add)]; }
+    function openBook(book) {
+      modalBook = book;
+      const title = book.title || 'Untitled';
+      const img = safeUrl(book.image_url);
+      $('#book-cover').innerHTML = img
+        ? `<img src="${escapeHtml(img)}" alt="Cover of ${escapeHtml(title)}" class="h-full w-full object-cover" />`
+        : coverFallback(escapeHtml(title));
+      const cimg = $('#book-cover img');
+      if (cimg) cimg.addEventListener('error', () => { $('#book-cover').innerHTML = coverFallback(escapeHtml(title)); }, { once: true });
+      $('#book-name').textContent = title;
+      const price = priceOf(book);
+      const inStock = book.in_stock !== false;
+      const facts = [
+        ['Class', book.class_name],
+        ['Subject', book.subject],
+        ['Author', book.author],
+        ['Rate', price !== null ? '₹' + price : 'Price on confirmation'],
+        ['Availability', inStock ? 'In stock' : 'Out of stock']
+      ].filter(([, v]) => v);
+      $('#book-facts').innerHTML = facts.map(([k, v]) => `
+        <div class="rounded-2xl bg-slate-900/5 px-3 py-2 dark:bg-white/5">
+          <dt class="text-[11px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">${escapeHtml(k)}</dt>
+          <dd class="mt-0.5 font-semibold text-slate-900 dark:text-white">${escapeHtml(v)}</dd>
+        </div>`).join('');
+      const d = $('#book-desc'); d.textContent = book.description || ''; d.style.display = book.description ? '' : 'none';
+      bookModal.classList.remove('hidden'); bookModal.classList.add('flex');
+    }
+    function closeBook() { bookModal.classList.add('hidden'); bookModal.classList.remove('flex'); }
+    $('#book-close').addEventListener('click', closeBook);
+    bookModal.addEventListener('click', e => { if (e.target === bookModal) closeBook(); });
+    $('#book-add').addEventListener('click', () => { if (modalBook) { addToCart(modalBook); closeBook(); } });
+
     container.addEventListener('click', e => {
+      const view = e.target.closest('[data-view]');
+      if (view) { e.preventDefault(); const bk = findBook(view); if (bk) openBook(bk); return; }
       const btn = e.target.closest('[data-add]');
       if (!btn) return;
       e.preventDefault();
@@ -1521,7 +1578,7 @@ Deoband, Saharanpur</p>
     /* Escape closes any open overlay */
     document.addEventListener('keydown', e => {
       if (e.key !== 'Escape') return;
-      closeCart(); closeVideo(); closeChat();
+      closeCart(); closeVideo(); closeChat(); closeBook();
     });
 
     /* =====================================================================
