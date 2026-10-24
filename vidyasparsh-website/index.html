@@ -1,0 +1,26 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E📚%3C/text%3E%3C/svg%3E"><link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;800&family=Mukta:wght@400;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"><title>Vidyasparsh – Books for every class</title><meta name="description" content="Buy textbooks and study guides by class and subject from Vidyasparsh, Deoband."></head>
+<body><main><div class="wrap hero one"><div><h1 id="tag"></h1><p id="intro"></p><a class="btn" href="#books">Browse books</a></div></div>
+<section id="books"><div class="wrap"><h2 style="margin-bottom:16px">Our books</h2>
+<div class="tools"><input id="q" type="search" placeholder="Search by title or author" aria-label="Search books"><select id="fClass" aria-label="Class"></select><select id="fSubject" aria-label="Subject"></select>
+<select id="sort" aria-label="Sort"><option value="new">Newest first</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option><option value="az">Title A–Z</option></select></div>
+<div class="grid" id="grid"><p class="empty">Loading books…</p></div></div></section></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script><script src="config.js"></script><script src="app.js"></script>
+<script>
+let ALL = [];
+shell();
+$("tag").textContent = SITE.tagline; $("intro").textContent = SITE.intro;
+function render() {
+  const q = $("q").value.trim().toLowerCase(), c = $("fClass").value, s = $("fSubject").value;
+  const S = { new:null, low:(a,b)=>a.price-b.price, high:(a,b)=>b.price-a.price, az:(a,b)=>a.title.localeCompare(b.title) }[$("sort").value];
+  const list = ALL.filter(b => (!c || b.cls === c) && (!s || b.subject === s) && (!q || (b.title + " " + b.author).toLowerCase().includes(q)));
+  if (S) list.sort(S);
+  $("grid").innerHTML = list.length ? list.map(b => `<article class="card"><a href="book.html?s=${encodeURIComponent(b.slug)}">${cover(b)}</a><div class="info"><a href="book.html?s=${encodeURIComponent(b.slug)}"><b>${esc(b.title)}</b></a><div class="meta">${esc(b.cls)} · ${esc(b.subject)}</div><div class="row"><span class="price">${money(b.price)}</span>${b.in_stock === false ? '<span class="badge">Out of stock</span>' : `<button class="btn" data-add="${esc(b.id)}">Add to cart</button>`}</div></div></article>`).join("") : '<p class="empty">No books match your search. Try another class or subject.</p>';
+}
+document.addEventListener("click", e => { const a = e.target.closest("[data-add]"); if (a) addToCart(ALL.find(b => b.id === a.dataset.add)); });
+["q","fClass","fSubject","sort"].forEach(id => $(id).addEventListener("input", render));
+loadBooks().then(list => {
+  ALL = list;
+  const opts = (k, l) => `<option value="">${l}</option>` + [...new Set(ALL.map(b => b[k]))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true})).map(v => `<option>${esc(v)}</option>`).join("");
+  $("fClass").innerHTML = opts("cls","All classes"); $("fSubject").innerHTML = opts("subject","All subjects"); render();
+});
+</script></body></html>

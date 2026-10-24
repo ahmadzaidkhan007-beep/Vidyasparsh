@@ -1,0 +1,24 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E📚%3C/text%3E%3C/svg%3E"><link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;800&family=Mukta:wght@400;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"><title>Book – Vidyasparsh</title></head>
+<body><main class="wrap"><div id="view"><p class="empty">Loading…</p></div></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script><script src="config.js"></script><script src="app.js"></script>
+<script>
+shell();
+(async () => {
+  const slug = new URLSearchParams(location.search).get("s");
+  let b = null;
+  if (!db) b = SAMPLE.find(x => x.slug === slug);
+  else { const r = await db.from("books").select("*").eq("slug", slug).maybeSingle(); b = r.data; }
+  if (!b) { $("view").innerHTML = '<p class="empty">This book was not found. <a href="index.html#books">See all books</a></p>'; return; }
+  const desc = b.description || `${b.title} for ${b.cls} ${b.subject}, available at ${SITE.name}.`;
+  setMeta(`${b.title} – ${b.cls} ${b.subject} | ${SITE.name}`, desc.slice(0, 155));
+  const ld = document.createElement("script"); ld.type = "application/ld+json";
+  ld.textContent = JSON.stringify({ "@context":"https://schema.org", "@type":"Product", name:b.title, description:desc, image:b.cover_url || undefined, brand:{ "@type":"Brand", name:SITE.name }, offers:{ "@type":"Offer", priceCurrency:"INR", price:b.price, availability: b.in_stock === false ? "https://schema.org/OutOfStock" : "https://schema.org/InStock" } });
+  document.head.appendChild(ld);
+  const wa = `https://wa.me/${SITE.whatsapp}?text=${encodeURIComponent(`Hello ${SITE.name}, I want to order "${b.title}" (${b.cls}) for ${money(b.price)}.`)}`;
+  $("view").innerHTML = `<div class="detail"><div style="max-width:340px">${cover(b)}</div><div><span class="badge">${esc(b.cls)}</span><span class="badge">${esc(b.subject)}</span>
+    <h1 style="margin:14px 0 6px">${esc(b.title)}</h1><p class="meta">by ${esc(b.author)}</p><p class="price" style="font-size:30px">${money(b.price)}</p>
+    <p style="max-width:60ch">${esc(desc)}</p>
+    <p>${b.in_stock === false ? '<span class="badge">Out of stock</span>' : '<button class="btn" id="add">Add to cart</button> <a class="btn gold" target="_blank" rel="noopener" href="' + wa + '">Order on WhatsApp</a>'}</p></div></div>`;
+  if ($("add")) $("add").onclick = () => addToCart(b);
+})();
+</script></body></html>
