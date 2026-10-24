@@ -1,26 +1,1906 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E📚%3C/text%3E%3C/svg%3E"><link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;800&family=Mukta:wght@400;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css"><title>Vidyasparsh – Books for every class</title><meta name="description" content="Buy textbooks and study guides by class and subject from Vidyasparsh, Deoband."></head>
-<body><main><div class="wrap hero one"><div><h1 id="tag"></h1><p id="intro"></p><a class="btn" href="#books">Browse books</a></div></div>
-<section id="books"><div class="wrap"><h2 style="margin-bottom:16px">Our books</h2>
-<div class="tools"><input id="q" type="search" placeholder="Search by title or author" aria-label="Search books"><select id="fClass" aria-label="Class"></select><select id="fSubject" aria-label="Subject"></select>
-<select id="sort" aria-label="Sort"><option value="new">Newest first</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option><option value="az">Title A–Z</option></select></div>
-<div class="grid" id="grid"><p class="empty">Loading books…</p></div></div></section></main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script><script src="config.js"></script><script src="app.js"></script>
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vidyasparsh Publication — Bring Your Story to Life</title>
+  <meta name="description" content="Vidyasparsh Publication, Deoband — books, sample chapters, exam paper maker, editing, cover design and distribution." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='14' fill='%234f46e5'/%3E%3Cpath d='M24 34C19 29.5 13 28 8 29V19c5-1 11.2.4 16 5V34Zm0 0c5-4.5 11-6 16-5V19c-5-1-11.2.4-16 5V34Z' fill='%23fff' opacity='.85'/%3E%3Cpath d='M24 10c3.6 3.6 5.4 8.2 5.4 12.6 0 3.8-2 7-5.4 9.4-3.4-2.4-5.4-5.6-5.4-9.4C18.6 18.2 20.4 13.6 24 10Z' fill='%23fbbf24'/%3E%3C/svg%3E" />
+
+  <!-- Apply saved theme before paint (prevents flash) -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('vs-theme');
+        if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        }
+      } catch (e) {}
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Noto+Serif+Devanagari:wght@600;700&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            display: ['"Space Grotesk"', '"Plus Jakarta Sans"', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+  <script>window.lucide || document.write('<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"><\/script>');</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+    .font-display { font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif; }
+    .deva { font-family: 'Noto Serif Devanagari', serif; }
+
+    /* Glassmorphism */
+    .glass {
+      background: rgba(255, 255, 255, 0.62);
+      -webkit-backdrop-filter: blur(18px) saturate(170%);
+      backdrop-filter: blur(18px) saturate(170%);
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      box-shadow: 0 8px 30px rgba(60, 50, 120, 0.08);
+    }
+    .dark .glass { background: rgba(22, 24, 42, 0.55); border-color: rgba(255, 255, 255, 0.08); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35); }
+    /* More opaque variant for panels that must stay readable (chat, cart, modals) */
+    .solid-glass {
+      background: rgba(255, 255, 255, 0.94);
+      -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+      border: 1px solid rgba(99, 102, 241, 0.15);
+      box-shadow: 0 25px 60px rgba(40, 30, 100, 0.25);
+    }
+    .dark .solid-glass { background: rgba(16, 18, 34, 0.95); border-color: rgba(255, 255, 255, 0.1); }
+
+    /* Ambient background */
+    .blob { position: absolute; border-radius: 9999px; filter: blur(80px); opacity: .45; pointer-events: none; }
+    .dark .blob { opacity: .28; }
+    .grain::before {
+      content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .035;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    }
+
+    /* Logo ripple ("sparsh" = touch) */
+    .logo-ripple { transform-box: fill-box; transform-origin: center; }
+    @keyframes ripple { 0% { transform: scale(.5); opacity: .9; } 100% { transform: scale(2.2); opacity: 0; } }
+    .group:hover .logo-ripple { animation: ripple 1.3s ease-out infinite; }
+
+    /* Floating books */
+    @keyframes floaty { 0%,100% { transform: translateY(0) rotate(var(--r, 0deg)); } 50% { transform: translateY(-16px) rotate(var(--r, 0deg)); } }
+    .float { animation: floaty 7s ease-in-out infinite; }
+    .book { position: absolute; width: 180px; height: 260px; border-radius: 6px 14px 14px 6px; overflow: hidden;
+      box-shadow: 0 30px 50px -15px rgba(30, 20, 80, .45), inset 6px 0 0 rgba(0,0,0,.18); }
+    .book::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, rgba(255,255,255,.28), transparent 35%); }
+    @media (min-width: 640px) { .book { width: 210px; height: 300px; } }
+
+    /* Scroll reveal */
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1); }
+    .reveal.in { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity: 1; transform: none; transition: none; }
+      .float, .group:hover .logo-ripple { animation: none; }
+      html { scroll-behavior: auto; }
+    }
+
+    /* Skeleton shimmer */
+    @keyframes shimmer { 100% { transform: translateX(100%); } }
+    .skeleton { position: relative; overflow: hidden; }
+    .skeleton::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent); animation: shimmer 1.4s infinite; }
+
+    /* Chat typing dots */
+    @keyframes blink { 0%,80%,100% { opacity: .25; } 40% { opacity: 1; } }
+    .dot { animation: blink 1.2s infinite; }
+    .dot:nth-child(2) { animation-delay: .2s; } .dot:nth-child(3) { animation-delay: .4s; }
+
+    section[id] { scroll-margin-top: 6rem; }
+    ::selection { background: #fbbf24; color: #1e1b4b; }
+
+    /* Exam paper sheet */
+    #paper-sheet { background: #fff; color: #111827; }
+    #paper-sheet [contenteditable]:hover { background: rgba(99, 102, 241, .07); }
+    #paper-sheet [contenteditable]:focus { outline: 2px dashed #6366f1; outline-offset: 2px; background: rgba(99, 102, 241, .06); }
+    .marks-input { -moz-appearance: textfield; }
+    .marks-input::-webkit-outer-spin-button, .marks-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+    /* Print: only the exam paper */
+    @media print {
+      @page { margin: 14mm; }
+      body.printing-paper { background: #fff !important; }
+      body.printing-paper header,
+      body.printing-paper footer,
+      body.printing-paper main > section:not(#exam-paper),
+      body.printing-paper .no-print { display: none !important; }
+      body.printing-paper #exam-paper { padding: 0 !important; }
+      body.printing-paper #exam-paper > div, body.printing-paper #exam-paper .grid { display: block !important; max-width: none !important; padding: 0 !important; }
+      body.printing-paper #paper-sheet { box-shadow: none !important; border-radius: 0 !important; padding: 0 !important; }
+      body.printing-paper #paper-sheet .q { break-inside: avoid; }
+    }
+  </style>
+</head>
+
+<body class="bg-[#faf8f4] text-slate-800 antialiased transition-colors duration-500 dark:bg-[#0a0b14] dark:text-slate-200">
+
+  <!-- ============ NAVBAR ============ -->
+  <header class="no-print sticky top-3 z-50 px-3 sm:px-6">
+    <nav class="glass mx-auto flex max-w-6xl items-center justify-between rounded-2xl px-4 py-3 sm:px-6" aria-label="Main">
+      <!-- Logo: lotus-book with a touch spark -->
+      <a href="#home" class="group flex items-center gap-3" aria-label="Vidyasparsh Publication — home">
+        <svg width="46" height="46" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="shrink-0 transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-105" aria-hidden="true">
+          <defs>
+            <linearGradient id="vsBg" x1="3" y1="3" x2="45" y2="45" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#4338ca" /><stop offset="1" stop-color="#9333ea" />
+            </linearGradient>
+            <linearGradient id="vsPetal" x1="24" y1="10" x2="24" y2="33" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#fde68a" /><stop offset="1" stop-color="#f59e0b" />
+            </linearGradient>
+          </defs>
+          <rect x="1" y="1" width="46" height="46" rx="15" fill="url(#vsBg)" />
+          <!-- open book / lotus side petals -->
+          <path d="M24 35C19 30.5 13 29 7.5 30V20c5.5-1 11.5.5 16.500 5V35Z" fill="#fff" fill-opacity=".82" />
+          <path d="M24 35c5-4.500 11-6 16.500-5V20c-5.500-1-11.500.5-16.500 5V35Z" fill="#fff" fill-opacity=".62" />
+          <!-- centre petal = flame of knowledge / quill -->
+          <path d="M24 13c3.800 3.600 5.600 8.200 5.600 12.600 0 3.800-2.100 7-5.600 9.400-3.500-2.400-5.600-5.600-5.600-9.400C18.400 21.200 20.200 16.600 24 13Z" fill="url(#vsPetal)" />
+          <path d="M24 17v15" stroke="#4338ca" stroke-width="1.100" stroke-linecap="round" opacity=".5" />
+          <!-- touch spark -->
+          <circle cx="24" cy="8" r="4" stroke="#fff" stroke-width="1" class="logo-ripple" opacity=".6" />
+          <circle cx="24" cy="8" r="1.900" fill="#fff" />
+        </svg>
+        <span class="block leading-none">
+          <span class="font-display block text-[1.15rem] font-bold tracking-tight text-slate-900 dark:text-white">Vidyasparsh</span>
+          <span class="mt-1 flex items-center gap-2">
+            <span class="deva text-[11px] font-bold text-amber-600 dark:text-amber-400">विद्यास्पर्श</span>
+            <span class="h-px w-3 bg-slate-400/60"></span>
+            <span class="text-[9px] font-bold uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">Publication</span>
+          </span>
+        </span>
+      </a>
+
+      <!-- Desktop links -->
+      <ul class="hidden items-center gap-0.5 lg:flex">
+        <li><a class="rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-indigo-500/10 hover:text-indigo-700 dark:text-slate-300 dark:hover:text-white" href="#home">Home</a></li>
+        <li><a class="rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-indigo-500/10 hover:text-indigo-700 dark:text-slate-300 dark:hover:text-white" href="#bestsellers">Books</a></li>
+        <li><a class="rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-indigo-500/10 hover:text-indigo-700 dark:text-slate-300 dark:hover:text-white" href="#samples">Sample Chapters</a></li>
+        <li><a class="rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-indigo-500/10 hover:text-indigo-700 dark:text-slate-300 dark:hover:text-white" href="#exam-paper">Exam Paper</a></li>
+        <li><a class="rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-indigo-500/10 hover:text-indigo-700 dark:text-slate-300 dark:hover:text-white" href="#services">Services</a></li>
+        <li><a class="rounded-xl px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-indigo-500/10 hover:text-indigo-700 dark:text-slate-300 dark:hover:text-white" href="#contact">Contact</a></li>
+      </ul>
+
+      <div class="flex items-center gap-2">
+        <button id="theme-toggle" type="button" aria-label="Toggle dark mode"
+          class="grid h-10 w-10 place-items-center rounded-xl text-slate-900 transition hover:rotate-12 hover:bg-slate-900/10 dark:text-amber-300 dark:hover:bg-white/10">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 [stroke-width:2.2] dark:hidden" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden h-6 w-6 [stroke-width:2.2] dark:block" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        </button>
+
+        <!-- Cart -->
+        <button id="cart-btn" type="button" aria-label="Open cart"
+          class="relative grid h-10 w-10 place-items-center rounded-xl text-indigo-700 transition hover:-translate-y-0.5 hover:bg-indigo-500/10 dark:text-indigo-300">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 [stroke-width:2.2]" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+          <span id="cart-count" style="display:none" class="absolute -right-1.5 -top-1.5 min-w-[1.25rem] place-items-center rounded-full bg-amber-400 px-1 text-center text-[11px] font-extrabold leading-5 text-indigo-950">0</span>
+        </button>
+
+        <button id="menu-btn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu"
+          class="grid h-10 w-10 place-items-center rounded-xl text-slate-900 hover:bg-slate-900/10 dark:text-white dark:hover:bg-white/10 lg:hidden">
+          <i data-lucide="menu" class="h-6 w-6 [stroke-width:2.2]"></i>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Mobile menu -->
+    <div id="mobile-menu" class="glass mx-auto mt-2 hidden max-w-6xl rounded-2xl p-3 lg:hidden">
+      <a href="#home" class="block rounded-xl px-4 py-3 text-sm font-semibold hover:bg-indigo-500/10">Home</a>
+      <a href="#bestsellers" class="block rounded-xl px-4 py-3 text-sm font-semibold hover:bg-indigo-500/10">Books</a>
+      <a href="#samples" class="block rounded-xl px-4 py-3 text-sm font-semibold hover:bg-indigo-500/10">Sample Chapters</a>
+      <a href="#exam-paper" class="block rounded-xl px-4 py-3 text-sm font-semibold hover:bg-indigo-500/10">Exam Paper Maker</a>
+      <a href="#services" class="block rounded-xl px-4 py-3 text-sm font-semibold hover:bg-indigo-500/10">Services</a>
+      <a href="#contact" class="block rounded-xl px-4 py-3 text-sm font-semibold hover:bg-indigo-500/10">Contact</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ HERO ============ -->
+    <section id="home" class="grain relative -mt-20 overflow-hidden pb-20 pt-32 sm:pt-40 lg:pb-32">
+      <div class="blob -left-24 top-10 h-80 w-80 bg-indigo-400"></div>
+      <div class="blob right-0 top-40 h-96 w-96 bg-amber-300"></div>
+      <div class="blob bottom-0 left-1/3 h-72 w-72 bg-fuchsia-300"></div>
+
+      <div class="relative mx-auto grid max-w-6xl items-center gap-12 px-5 sm:px-6 lg:grid-cols-12">
+        <div class="reveal lg:col-span-7">
+          <span class="glass inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300">
+            <span class="h-2 w-2 animate-pulse rounded-full bg-amber-500"></span>
+            Publishing from Deoband, for readers everywhere
+          </span>
+
+          <h1 class="font-display mt-6 text-5xl font-bold leading-[1.02] tracking-tight text-slate-900 dark:text-white sm:text-6xl lg:text-7xl">
+            Bring Your
+            <span class="relative inline-block">
+              <span class="bg-gradient-to-r from-indigo-600 via-violet-600 to-amber-500 bg-clip-text text-transparent">Story</span>
+              <svg class="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 12" fill="none" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M2 8c40-7 90-8 196-2" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" />
+              </svg>
+            </span>
+            <br class="hidden sm:block" /> to Life.
+          </h1>
+
+          <p class="mt-7 max-w-xl text-lg leading-relaxed text-slate-600 dark:text-slate-400">
+            Vidyasparsh Publication turns manuscripts into beautifully crafted books — with careful editing, striking cover design and distribution that finds your readers.
+          </p>
+
+          <div class="mt-9 flex flex-wrap items-center gap-4">
+            <a href="#contact" class="group inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 px-7 py-4 text-sm font-bold text-white shadow-lg shadow-indigo-500/30 transition hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/40">
+              Start publishing
+              <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-1"></i>
+            </a>
+            <a href="#bestsellers" class="glass inline-flex items-center gap-2 rounded-2xl px-7 py-4 text-sm font-bold text-slate-800 transition hover:-translate-y-1 dark:text-white">
+              <i data-lucide="book-open" class="h-4 w-4"></i>
+              Explore our books
+            </a>
+          </div>
+
+          <ul class="mt-10 flex flex-wrap gap-x-8 gap-y-3 text-sm font-semibold text-slate-500 dark:text-slate-400">
+            <li class="flex items-center gap-2"><i data-lucide="play-circle" class="h-4 w-4 text-indigo-500"></i> Sample chapters</li>
+            <li class="flex items-center gap-2"><i data-lucide="file-pen-line" class="h-4 w-4 text-indigo-500"></i> Exam paper maker</li>
+            <li class="flex items-center gap-2"><i data-lucide="truck" class="h-4 w-4 text-indigo-500"></i> Distribution</li>
+          </ul>
+        </div>
+
+        <!-- Book mockup -->
+        <div class="reveal relative mx-auto h-[420px] w-full max-w-md sm:h-[500px] lg:col-span-5 lg:max-w-none" aria-hidden="true">
+          <div class="absolute inset-6 rounded-[2.5rem] bg-gradient-to-br from-indigo-500/20 to-amber-400/20 blur-2xl"></div>
+
+          <div class="book float bg-gradient-to-br from-amber-400 to-orange-500" style="left: 4%; top: 12%; --r: -10deg; animation-delay: -2s;">
+            <div class="flex h-full flex-col justify-between p-5 text-indigo-950">
+              <span class="text-[10px] font-bold uppercase tracking-[0.3em]">Vidyasparsh</span>
+              <div>
+                <p class="font-display text-2xl font-bold leading-tight">Ink &amp;<br>Imagination</p>
+                <div class="mt-3 h-1 w-10 rounded bg-indigo-950/70"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="book float bg-gradient-to-br from-slate-900 to-indigo-900" style="right: 2%; top: 4%; --r: 8deg; animation-delay: -4s;">
+            <div class="flex h-full flex-col justify-between p-5 text-white">
+              <i data-lucide="feather" class="h-8 w-8 text-amber-300"></i>
+              <div>
+                <p class="font-display text-2xl font-bold leading-tight">Words<br>That Stay</p>
+                <p class="mt-2 text-[11px] text-indigo-200">A collection of voices</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="book float bg-gradient-to-br from-indigo-500 via-violet-600 to-fuchsia-600" style="left: 24%; top: 36%; --r: -3deg;">
+            <div class="relative flex h-full flex-col justify-between p-5 text-white">
+              <div class="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-amber-300/30 blur-xl"></div>
+              <span class="text-[10px] font-bold uppercase tracking-[0.3em] text-amber-200">Your Name Here</span>
+              <div class="relative">
+                <p class="font-display text-3xl font-bold leading-[1.05]">Your<br>Story<br>Begins.</p>
+                <div class="mt-4 flex gap-1.5"><span class="h-1.5 w-8 rounded bg-amber-300"></span><span class="h-1.5 w-3 rounded bg-white/60"></span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass float absolute right-0 top-[62%] flex items-center gap-2 rounded-2xl px-4 py-3 text-xs font-bold" style="animation-delay: -1s;">
+            <span class="grid h-7 w-7 place-items-center rounded-lg bg-amber-400 text-indigo-950"><i data-lucide="sparkles" class="h-4 w-4"></i></span>
+            Crafted with care
+          </div>
+          <div class="glass float absolute bottom-[4%] left-0 flex items-center gap-2 rounded-2xl px-4 py-3 text-xs font-bold" style="animation-delay: -5s;">
+            <span class="grid h-7 w-7 place-items-center rounded-lg bg-indigo-600 text-white"><i data-lucide="book-check" class="h-4 w-4"></i></span>
+            Ready for readers
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ QUICK CONTACT STRIP ============ -->
+    <section class="relative pb-6" aria-label="Quick contact">
+      <div class="mx-auto max-w-6xl px-5 sm:px-6">
+        <div class="reveal grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <!-- TODO: replace phone / email with your real details -->
+          <a href="tel:+917895803620" data-link="phone1" class="glass group flex items-center gap-4 rounded-3xl p-4 transition hover:-translate-y-1 hover:shadow-xl">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-10 w-10 shrink-0 text-emerald-600 [stroke-width:2] dark:text-emerald-400" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span class="min-w-0"><span class="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Call us</span><span data-text="phone1" class="block font-bold text-slate-900 dark:text-white">+91 78958 03620</span></span>
+          </a>
+          <a id="strip-wa" href="#" target="_blank" rel="noopener noreferrer" class="glass group flex items-center gap-4 rounded-3xl p-4 transition hover:-translate-y-1 hover:shadow-xl">
+            <span class="shrink-0 text-[#25d366]"><svg viewBox="0 0 24 24" class="h-10 w-10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.2a8.8 8.8 0 0 0-7.5 13.4L3.2 20.8l4.3-1.2A8.8 8.8 0 1 0 12 3.2Z"/><path d="M9.2 8.6c-.3.6-.3 1.5.4 2.8 1 1.8 2.4 2.8 3.8 3.2.9.2 1.5-.2 1.8-.9l-1.6-1-.8.6c-.9-.4-1.8-1.3-2.2-2.2l.6-.8-1-1.6c-.3 0-.7.1-1 .3Z" fill="currentColor" stroke="none"/></svg></span>
+            <span class="min-w-0"><span class="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">WhatsApp</span><span class="block font-bold text-slate-900 dark:text-white">Chat with us</span></span>
+          </a>
+          <a href="mailto:vidyasparsh786@gmail.com" data-link="email" class="glass group flex items-center gap-4 rounded-3xl p-4 transition hover:-translate-y-1 hover:shadow-xl">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-10 w-10 shrink-0 text-amber-600 [stroke-width:2] dark:text-amber-400" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            <span class="min-w-0"><span class="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Email</span><span data-text="email" class="block break-all font-bold text-slate-900 dark:text-white">vidyasparsh786@gmail.com</span></span>
+          </a>
+          <a href="https://www.google.com/maps/search/?api=1&amp;query=Mohalla+Qila+Deoband+Saharanpur" target="_blank" rel="noopener noreferrer" class="glass group flex items-center gap-4 rounded-3xl p-4 transition hover:-translate-y-1 hover:shadow-xl">
+            <i data-lucide="map-pin" class="h-10 w-10 shrink-0 text-rose-600 [stroke-width:2] dark:text-rose-400"></i>
+            <span class="min-w-0"><span class="block text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Address</span><span class="block font-bold leading-snug text-slate-900 dark:text-white">Mohalla Qila, Deoband, Saharanpur</span></span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ BESTSELLERS ============ -->
+    <section id="bestsellers" class="relative py-20 sm:py-28">
+      <div class="mx-auto max-w-6xl px-5 sm:px-6">
+        <div class="reveal mb-12 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-[0.3em] text-amber-600 dark:text-amber-400">From our shelf</p>
+            <h2 class="font-display mt-3 text-4xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-5xl">Bestsellers</h2>
+          </div>
+          <p class="max-w-md text-slate-600 dark:text-slate-400">Titles our readers love. Add a book to your cart and send the order on WhatsApp.</p>
+        </div>
+
+        <!-- Filled dynamically from Supabase -->
+        <div id="books-container" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- ============ SAMPLE CHAPTERS (YouTube) ============ -->
+    <section id="samples" class="relative py-20 sm:py-28">
+      <div class="blob left-0 top-10 h-72 w-72 bg-fuchsia-300"></div>
+      <div class="relative mx-auto max-w-6xl px-5 sm:px-6">
+        <div class="reveal mb-12 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-[0.3em] text-amber-600 dark:text-amber-400">Read before you buy</p>
+            <h2 class="font-display mt-3 text-4xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-5xl">Sample Chapters</h2>
+          </div>
+          <p class="max-w-md text-slate-600 dark:text-slate-400">Watch sample chapters from our books online, right here — no need to leave the page.</p>
+        </div>
+        <div id="samples-grid" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4"></div>
+      </div>
+    </section>
+
+    <!-- ============ EXAM PAPER MAKER ============ -->
+    <section id="exam-paper" class="relative py-20 sm:py-28">
+      <div class="mx-auto max-w-6xl px-5 sm:px-6">
+        <div class="no-print reveal mb-12 max-w-2xl">
+          <p class="text-xs font-bold uppercase tracking-[0.3em] text-amber-600 dark:text-amber-400">For teachers &amp; schools</p>
+          <h2 class="font-display mt-3 text-4xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-5xl">Exam Paper Maker</h2>
+          <p class="mt-4 text-slate-600 dark:text-slate-400">Build a question paper from our book's question bank — pick questions by hand, or let the tool set a paper automatically. Then edit anything and print or save as PDF.</p>
+        </div>
+
+        <div class="grid gap-6 lg:grid-cols-5">
+          <!-- Controls -->
+          <div class="no-print space-y-4 lg:col-span-2">
+            <div class="glass rounded-3xl p-5">
+              <!-- Mode switch -->
+              <div class="grid grid-cols-2 gap-1 rounded-2xl bg-slate-900/5 p-1 dark:bg-white/10" role="tablist" aria-label="Paper mode">
+                <button id="mode-manual" type="button" role="tab" aria-selected="true" class="flex items-center justify-center gap-2 rounded-xl bg-white px-3 py-2.5 text-sm font-bold text-indigo-700 shadow dark:bg-indigo-600 dark:text-white"><i data-lucide="mouse-pointer-click" class="h-4 w-4"></i> Manual</button>
+                <button id="mode-auto" type="button" role="tab" aria-selected="false" class="flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300"><i data-lucide="wand-sparkles" class="h-4 w-4"></i> Automatic</button>
+              </div>
+
+              <!-- Manual -->
+              <div id="panel-manual" class="mt-5">
+                <div class="grid grid-cols-2 gap-2">
+                  <select id="flt-chapter" aria-label="Filter by chapter" class="rounded-xl border border-slate-300/70 bg-white/80 px-3 py-2.5 text-sm font-semibold text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"></select>
+                  <select id="flt-type" aria-label="Filter by type" class="rounded-xl border border-slate-300/70 bg-white/80 px-3 py-2.5 text-sm font-semibold text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
+                    <option value="">All types</option>
+                    <option value="mcq">MCQ</option>
+                    <option value="fill">Fill in the blanks</option>
+                    <option value="short">Short answer</option>
+                    <option value="long">Long answer</option>
+                  </select>
+                </div>
+                <div id="bank-list" class="mt-3 max-h-[26rem] space-y-2 overflow-y-auto pr-1"></div>
+              </div>
+
+              <!-- Automatic -->
+              <div id="panel-auto" class="mt-5 hidden">
+                <p class="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Chapters</p>
+                <div id="auto-chapters" class="mt-2 flex flex-wrap gap-2"></div>
+
+                <p class="mt-5 text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Questions &amp; marks</p>
+                <div id="auto-types" class="mt-2 space-y-2"></div>
+
+                <button id="btn-generate" type="button" class="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/30 transition hover:-translate-y-0.5">
+                  <i data-lucide="wand-sparkles" class="h-4 w-4"></i> Generate paper
+                </button>
+                <p class="mt-2 text-center text-xs text-slate-500 dark:text-slate-400">Press again for a fresh random set.</p>
+              </div>
+            </div>
+
+            <!-- Add own question -->
+            <details class="glass rounded-3xl p-5">
+              <summary class="flex cursor-pointer list-none items-center gap-2 text-sm font-bold text-slate-800 dark:text-white">
+                <i data-lucide="plus-circle" class="h-4 w-4 text-indigo-500"></i> Add your own question
+              </summary>
+              <div class="mt-4 space-y-3">
+                <textarea id="nq-text" rows="3" placeholder="Type the question. For MCQ, put the options on the next lines, e.g. (a) ... (b) ..." class="w-full rounded-xl border border-slate-300/70 bg-white/80 p-3 text-sm dark:border-white/10 dark:bg-white/5"></textarea>
+                <div class="grid grid-cols-3 gap-2">
+                  <select id="nq-type" aria-label="Question type" class="rounded-xl border border-slate-300/70 bg-white/80 px-2 py-2.5 text-sm dark:border-white/10 dark:bg-white/5">
+                    <option value="mcq">MCQ</option><option value="fill">Fill blank</option><option value="short" selected>Short</option><option value="long">Long</option>
+                  </select>
+                  <input id="nq-marks" type="number" min="0" value="2" aria-label="Marks" class="rounded-xl border border-slate-300/70 bg-white/80 px-3 py-2.5 text-sm dark:border-white/10 dark:bg-white/5" />
+                  <input id="nq-chapter" type="text" placeholder="Chapter" aria-label="Chapter" class="rounded-xl border border-slate-300/70 bg-white/80 px-3 py-2.5 text-sm dark:border-white/10 dark:bg-white/5" />
+                </div>
+                <label class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"><input id="nq-add" type="checkbox" checked class="rounded" /> Also add to the paper</label>
+                <button id="nq-save" type="button" class="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-indigo-600 dark:bg-white dark:text-slate-900 dark:hover:bg-amber-300">Save question</button>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Saved in this browser only. To share one bank across devices, use the Supabase <code>questions</code> table.</p>
+              </div>
+            </details>
+          </div>
+
+          <!-- Paper -->
+          <div class="lg:col-span-3">
+            <div class="no-print mb-3 flex flex-wrap items-center justify-between gap-3">
+              <p class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400"><i data-lucide="pencil" class="h-4 w-4"></i> Click any text on the paper to edit it.</p>
+              <div class="flex gap-2">
+                <button id="btn-clear" type="button" class="flex items-center gap-2 rounded-xl bg-slate-900/5 px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-rose-500/15 hover:text-rose-600 dark:bg-white/10 dark:text-slate-200"><i data-lucide="trash-2" class="h-4 w-4"></i> Clear</button>
+                <button id="btn-print" type="button" class="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-indigo-500/30 transition hover:-translate-y-0.5 hover:bg-indigo-700"><i data-lucide="printer" class="h-4 w-4"></i> Print / Save PDF</button>
+              </div>
+            </div>
+
+            <div id="paper-sheet" class="rounded-2xl p-6 shadow-2xl shadow-indigo-900/10 sm:p-10">
+              <div class="text-center">
+                <h3 data-meta="school" contenteditable="true" class="font-display rounded text-2xl font-bold">Vidyasparsh Publication</h3>
+                <p data-meta="exam" contenteditable="true" class="mt-1 rounded text-lg font-semibold">Annual Examination</p>
+              </div>
+              <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-1 border-y-2 border-slate-900 py-2 text-sm font-semibold">
+                <p>Class: <span data-meta="class" contenteditable="true" class="rounded">________</span></p>
+                <p class="text-right">Time: <span data-meta="time" contenteditable="true" class="rounded">3 Hours</span></p>
+                <p>Subject: <span data-meta="subject" contenteditable="true" class="rounded">________</span></p>
+                <p class="text-right">Max. Marks: <span id="paper-total">0</span></p>
+                <p>Date: <span data-meta="date" contenteditable="true" class="rounded">__ / __ / ____</span></p>
+              </div>
+              <div class="mt-4 text-sm">
+                <p class="font-bold">General Instructions:</p>
+                <div data-meta="instructions" contenteditable="true" class="mt-1 whitespace-pre-wrap rounded">1. All questions are compulsory.
+2. Write neatly and legibly.
+3. Marks for each question are shown on the right.</div>
+              </div>
+              <div id="paper-body" class="mt-6"></div>
+              <p class="mt-8 text-center text-xs font-semibold tracking-widest text-slate-500">— END OF PAPER —</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SERVICES (BENTO) ============ -->
+    <section id="services" class="relative py-20 sm:py-28">
+      <div class="blob right-0 top-20 h-72 w-72 bg-indigo-300"></div>
+      <div class="relative mx-auto max-w-6xl px-5 sm:px-6">
+        <div class="reveal mb-12 max-w-2xl">
+          <p class="text-xs font-bold uppercase tracking-[0.3em] text-amber-600 dark:text-amber-400">Our services</p>
+          <h2 class="font-display mt-3 text-4xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-5xl">Everything between draft and bookshelf.</h2>
+        </div>
+
+        <div class="grid auto-rows-[minmax(190px,auto)] grid-cols-1 gap-4 md:grid-cols-6">
+          <article class="reveal group relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 p-8 text-white transition duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-indigo-500/30 md:col-span-4 md:row-span-2">
+            <div class="absolute -right-10 -top-10 h-56 w-56 rounded-full bg-amber-300/20 blur-3xl transition group-hover:bg-amber-300/30"></div>
+            <span class="grid h-12 w-12 place-items-center rounded-2xl bg-white/15 backdrop-blur"><i data-lucide="pen-tool" class="h-6 w-6"></i></span>
+            <h3 class="font-display mt-6 text-3xl font-bold">Editing &amp; Proofreading</h3>
+            <p class="mt-3 max-w-md leading-relaxed text-indigo-100">Line-by-line care for structure, language and flow — so your voice stays yours while every page reads cleanly.</p>
+            <div class="mt-8 space-y-3 rounded-2xl bg-white/10 p-5 backdrop-blur" aria-hidden="true">
+              <div class="h-2.5 w-11/12 rounded bg-white/50"></div>
+              <div class="flex items-center gap-2"><div class="h-2.5 w-7/12 rounded bg-white/50"></div><div class="h-2.5 w-16 rounded bg-amber-300"></div><div class="h-2.5 w-1/6 rounded bg-white/50"></div></div>
+              <div class="h-2.5 w-10/12 rounded bg-white/50"></div>
+              <div class="h-2.5 w-5/12 rounded bg-white/30"></div>
+            </div>
+          </article>
+
+          <article class="reveal group relative overflow-hidden rounded-[2rem] bg-gradient-to-b from-amber-300 to-orange-400 p-8 text-indigo-950 transition duration-500 hover:scale-[1.03] hover:shadow-2xl hover:shadow-amber-500/30 md:col-span-2 md:row-span-2">
+            <span class="grid h-12 w-12 place-items-center rounded-2xl bg-indigo-950/10"><i data-lucide="palette" class="h-6 w-6"></i></span>
+            <h3 class="font-display mt-6 text-3xl font-bold leading-tight">Cover Design</h3>
+            <p class="mt-3 leading-relaxed text-indigo-950/80">A cover that stops a reader mid-scroll and sits proudly on a shelf.</p>
+            <div class="mt-8 flex gap-2" aria-hidden="true">
+              <span class="h-10 w-10 rounded-full bg-indigo-700 ring-2 ring-white/60 transition group-hover:-translate-y-1"></span>
+              <span class="h-10 w-10 rounded-full bg-violet-500 ring-2 ring-white/60 transition delay-75 group-hover:-translate-y-2"></span>
+              <span class="h-10 w-10 rounded-full bg-white ring-2 ring-white/60 transition delay-150 group-hover:-translate-y-3"></span>
+              <span class="h-10 w-10 rounded-full bg-indigo-950 ring-2 ring-white/60 transition delay-200 group-hover:-translate-y-4"></span>
+            </div>
+          </article>
+
+          <article class="reveal glass group relative overflow-hidden rounded-[2rem] p-8 transition duration-500 hover:scale-[1.02] hover:shadow-2xl md:col-span-4">
+            <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <span class="grid h-12 w-12 place-items-center rounded-2xl bg-indigo-600 text-white"><i data-lucide="truck" class="h-6 w-6"></i></span>
+                <h3 class="font-display mt-5 text-3xl font-bold text-slate-900 dark:text-white">Distribution</h3>
+                <p class="mt-3 max-w-md leading-relaxed text-slate-600 dark:text-slate-400">From print to online storefronts, we help your book reach bookshops, libraries and readers.</p>
+              </div>
+              <div class="flex shrink-0 items-center gap-2" aria-hidden="true">
+                <span class="grid h-14 w-14 place-items-center rounded-2xl bg-indigo-500/10 text-indigo-600 transition group-hover:-translate-y-1 dark:text-indigo-300"><i data-lucide="store" class="h-6 w-6"></i></span>
+                <i data-lucide="arrow-right" class="h-4 w-4 text-slate-400"></i>
+                <span class="grid h-14 w-14 place-items-center rounded-2xl bg-amber-400/20 text-amber-600 transition delay-100 group-hover:-translate-y-2 dark:text-amber-300"><i data-lucide="globe" class="h-6 w-6"></i></span>
+                <i data-lucide="arrow-right" class="h-4 w-4 text-slate-400"></i>
+                <span class="grid h-14 w-14 place-items-center rounded-2xl bg-violet-500/10 text-violet-600 transition delay-200 group-hover:-translate-y-3 dark:text-violet-300"><i data-lucide="book-open-check" class="h-6 w-6"></i></span>
+              </div>
+            </div>
+          </article>
+
+          <a href="#contact" class="reveal group relative flex flex-col justify-between overflow-hidden rounded-[2rem] bg-slate-900 p-8 text-white transition duration-500 hover:scale-[1.03] hover:shadow-2xl dark:bg-white dark:text-slate-900 md:col-span-2">
+            <i data-lucide="feather" class="h-8 w-8 text-amber-400"></i>
+            <div>
+              <h3 class="font-display mt-6 text-2xl font-bold leading-tight">Have a manuscript?</h3>
+              <span class="mt-3 inline-flex items-center gap-2 text-sm font-bold text-amber-400 dark:text-indigo-600">Let's talk <i data-lucide="arrow-up-right" class="h-4 w-4 transition-transform group-hover:-translate-y-1 group-hover:translate-x-1"></i></span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ FOOTER & CONTACT ============ -->
+  <footer id="contact" class="relative mt-10 overflow-hidden bg-slate-900 text-slate-300 dark:bg-black/40">
+    <div class="blob -bottom-20 left-0 h-72 w-72 bg-indigo-600"></div>
+    <div class="relative mx-auto max-w-6xl px-5 pb-10 pt-20 sm:px-6">
+      <div class="grid gap-12 lg:grid-cols-12">
+        <div class="lg:col-span-5">
+          <h2 class="font-display text-4xl font-bold leading-tight text-white sm:text-5xl">Let's make your <span class="text-amber-400">book</span> happen.</h2>
+          <p class="mt-5 max-w-md leading-relaxed text-slate-300">Share your idea or manuscript and our team will get back to you with the next steps.</p>
+          <div class="mt-7 flex flex-wrap gap-3">
+            <a id="footer-wa" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-2xl bg-emerald-500 px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-emerald-600">
+              <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.2a8.8 8.8 0 0 0-7.5 13.4L3.2 20.8l4.3-1.2A8.8 8.8 0 1 0 12 3.2Z"/><path d="M9.2 8.6c-.3.6-.3 1.5.4 2.8 1 1.8 2.4 2.8 3.8 3.2.9.2 1.5-.2 1.8-.9l-1.6-1-.8.6c-.9-.4-1.8-1.3-2.2-2.2l.6-.8-1-1.6c-.3 0-.7.1-1 .3Z" fill="currentColor" stroke="none"/></svg>
+              Chat on WhatsApp
+            </a>
+            <button type="button" data-open-chat class="inline-flex items-center gap-2 rounded-2xl bg-white/10 px-5 py-3 text-sm font-bold text-white ring-1 ring-white/20 transition hover:-translate-y-0.5 hover:bg-white/20">
+              <i data-lucide="message-circle" class="h-5 w-5"></i> Ask a question
+            </button>
+          </div>
+        </div>
+
+        <div class="lg:col-span-7">
+          <!-- Contact details: big, coloured, clear icons -->
+          <div class="grid gap-5 sm:grid-cols-2">
+            <div class="flex gap-4">
+              <i data-lucide="map-pin" class="mt-0.5 h-9 w-9 shrink-0 text-rose-400 [stroke-width:2]"></i>
+              <div>
+                <h3 class="text-xs font-bold uppercase tracking-[0.25em] text-amber-400">Address</h3>
+                <p data-text="address" class="mt-1.5 whitespace-pre-line leading-relaxed text-slate-100">Mohalla Qila,
+Deoband, Saharanpur</p>
+                <p data-text="hours" data-hide-empty class="mt-1 hidden text-sm text-slate-300"></p>
+              </div>
+            </div>
+            <div class="flex gap-4">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 h-9 w-9 shrink-0 text-amber-400 [stroke-width:2]" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+              <div>
+                <h3 class="text-xs font-bold uppercase tracking-[0.25em] text-amber-400">Email</h3>
+                <!-- TODO: replace with your real email -->
+                <a href="mailto:vidyasparsh786@gmail.com" data-link="email" data-text="email" class="mt-1.5 block break-all text-slate-100 transition hover:text-amber-300">vidyasparsh786@gmail.com</a>
+              </div>
+            </div>
+            <div class="flex gap-4 sm:col-span-2">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 h-9 w-9 shrink-0 text-emerald-400 [stroke-width:2]" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <div>
+                <h3 class="text-xs font-bold uppercase tracking-[0.25em] text-amber-400">Phone</h3>
+                <!-- TODO: replace with your real phone numbers -->
+                <p class="mt-1.5 flex flex-wrap gap-x-6 gap-y-1 text-slate-100">
+                  <a href="tel:+917895803620" data-link="phone1" data-text="phone1" class="transition hover:text-amber-300">+91 78958 03620</a>
+                  <a href="tel:+919349246025" data-link="phone2" data-text="phone2" class="transition hover:text-amber-300">+91 93492 46025</a>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Social: clear, branded, labelled -->
+          <h3 class="mt-10 text-xs font-bold uppercase tracking-[0.25em] text-amber-400">Follow us</h3>
+          <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <!-- TODO: replace each href with your real page/channel link -->
+            <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" class="group flex items-center gap-3 rounded-2xl bg-white/5 p-3 ring-1 ring-white/10 transition hover:-translate-y-1 hover:bg-white/10">
+              <svg viewBox="0 0 24 24" class="h-11 w-11 shrink-0" aria-hidden="true"><circle cx="12" cy="12" r="11.5" fill="#1877f2"/><path fill="#fff" d="M13.5 21v-8h2.7l.4-3.2h-3.1V7.8c0-.9.3-1.5 1.6-1.5h1.6V3.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4v2.5H7.8V13h2.7v8h3Z"/></svg>
+              <span class="text-sm font-bold text-white">Facebook</span>
+            </a>
+            <a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="group flex items-center gap-3 rounded-2xl bg-white/5 p-3 ring-1 ring-white/10 transition hover:-translate-y-1 hover:bg-white/10">
+              <svg viewBox="0 0 24 24" class="h-11 w-11 shrink-0" aria-hidden="true"><rect x="1" y="4.5" width="22" height="15" rx="4.5" fill="#ff0000"/><path d="M10 8.6v6.8l6-3.4-6-3.4Z" fill="#fff"/></svg>
+              <span class="text-sm font-bold text-white">YouTube</span>
+            </a>
+            <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" class="group flex items-center gap-3 rounded-2xl bg-white/5 p-3 ring-1 ring-white/10 transition hover:-translate-y-1 hover:bg-white/10">
+              <svg viewBox="0 0 24 24" class="h-11 w-11 shrink-0" fill="none" aria-hidden="true"><defs><linearGradient id="igG" x1="2" y1="22" x2="22" y2="2" gradientUnits="userSpaceOnUse"><stop stop-color="#fdba26"/><stop offset=".5" stop-color="#f43f5e"/><stop offset="1" stop-color="#a21caf"/></linearGradient></defs><g stroke="url(#igG)" stroke-width="2.1"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5"/><circle cx="12" cy="12" r="4.3"/></g><circle cx="17.5" cy="6.5" r="1.2" fill="url(#igG)"/></svg>
+              <span class="text-sm font-bold text-white">Instagram</span>
+            </a>
+            <a id="social-wa" href="#" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" class="group flex items-center gap-3 rounded-2xl bg-white/5 p-3 ring-1 ring-white/10 transition hover:-translate-y-1 hover:bg-white/10">
+              <span class="shrink-0 text-[#25d366]"><svg viewBox="0 0 24 24" class="h-11 w-11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.2a8.8 8.8 0 0 0-7.5 13.4L3.2 20.8l4.3-1.2A8.8 8.8 0 1 0 12 3.2Z"/><path d="M9.2 8.6c-.3.6-.3 1.5.4 2.8 1 1.8 2.4 2.8 3.8 3.2.9.2 1.5-.2 1.8-.9l-1.6-1-.8.6c-.9-.4-1.8-1.3-2.2-2.2l.6-.8-1-1.6c-.3 0-.7.1-1 .3Z" fill="currentColor" stroke="none"/></svg></span>
+              <span class="text-sm font-bold text-white">WhatsApp</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-16 flex flex-col items-start justify-between gap-4 border-t border-white/10 pt-8 text-sm text-slate-400 sm:flex-row sm:items-center">
+        <p>© <span id="year"></span> Vidyasparsh Publication. All rights reserved.</p>
+        <p class="pr-14">Deoband · Saharanpur · Uttar Pradesh</p>
+      </div>
+    </div>
+
+    <!-- Secret admin gear -->
+    <a href="admin.html" aria-label="Admin" title="Admin panel"
+       class="no-print absolute bottom-4 right-4 grid h-12 w-12 place-items-center rounded-full text-amber-300 transition duration-500 hover:rotate-90 hover:bg-white/10 hover:text-amber-200">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 [stroke-width:2]" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+    </a>
+  </footer>
+
+  <!-- ============ CART DRAWER ============ -->
+  <div id="cart-overlay" class="no-print fixed inset-0 z-[70] hidden bg-slate-950/50 backdrop-blur-sm"></div>
+  <aside id="cart-panel" class="solid-glass no-print fixed right-0 top-0 z-[80] flex h-full w-full max-w-md translate-x-full flex-col transition-transform duration-500" aria-label="Shopping cart" aria-hidden="true">
+    <div class="flex items-center justify-between border-b border-slate-200/60 p-5 dark:border-white/10">
+      <h2 class="font-display flex items-center gap-2 text-xl font-bold text-slate-900 dark:text-white"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-indigo-600" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg> Your Cart</h2>
+      <button id="cart-close" type="button" aria-label="Close cart" class="grid h-9 w-9 place-items-center rounded-xl bg-slate-900/5 hover:bg-slate-900/10 dark:bg-white/10"><i data-lucide="x" class="h-5 w-5"></i></button>
+    </div>
+    <div id="cart-items" class="flex-1 space-y-3 overflow-y-auto p-5"></div>
+    <div class="border-t border-slate-200/60 p-5 dark:border-white/10">
+      <div class="flex items-center justify-between text-sm font-semibold text-slate-600 dark:text-slate-300"><span>Total</span><span id="cart-total" class="font-display text-lg font-bold text-slate-900 dark:text-white">—</span></div>
+      <a id="cart-order" href="#" target="_blank" rel="noopener noreferrer" class="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-5 py-3.5 text-sm font-bold text-white transition hover:bg-emerald-600">
+        <i data-lucide="send" class="h-4 w-4"></i> Send order on WhatsApp
+      </a>
+      <button id="cart-clear" type="button" class="mt-2 w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-500 transition hover:text-rose-600 dark:text-slate-400">Empty cart</button>
+    </div>
+  </aside>
+
+  <!-- ============ VIDEO MODAL ============ -->
+  <div id="video-modal" class="no-print fixed inset-0 z-[90] hidden items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Sample chapter video">
+    <div class="w-full max-w-3xl">
+      <div class="mb-3 flex items-center justify-between text-white">
+        <p id="video-title" class="font-display text-lg font-bold"></p>
+        <button id="video-close" type="button" aria-label="Close video" class="grid h-10 w-10 place-items-center rounded-xl bg-white/15 hover:bg-white/25"><i data-lucide="x" class="h-5 w-5"></i></button>
+      </div>
+      <div class="aspect-video overflow-hidden rounded-2xl bg-black shadow-2xl">
+        <iframe id="video-frame" class="h-full w-full" src="" title="Sample chapter" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ INQUIRY CHAT ============ -->
+  <div id="chat-root" class="no-print fixed bottom-5 left-4 z-[60] sm:left-5">
+    <div id="chat-panel" class="solid-glass mb-3 hidden h-[min(34rem,calc(100vh-7.5rem))] w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden rounded-3xl" role="dialog" aria-label="Inquiry chat">
+      <div class="flex items-center justify-between bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-3 text-white">
+        <div class="flex items-center gap-3">
+          <span class="grid h-10 w-10 place-items-center rounded-xl bg-white/20"><i data-lucide="message-circle" class="h-5 w-5"></i></span>
+          <div class="leading-tight">
+            <p class="font-display font-bold">Vidyasparsh Help</p>
+            <p class="flex items-center gap-1.5 text-[11px] text-indigo-100"><span class="h-1.5 w-1.5 rounded-full bg-emerald-300"></span> Ask us anything</p>
+          </div>
+        </div>
+        <button id="chat-close" type="button" aria-label="Close chat" class="grid h-8 w-8 place-items-center rounded-lg hover:bg-white/20"><i data-lucide="x" class="h-4 w-4"></i></button>
+      </div>
+      <div id="chat-msgs" class="flex-1 space-y-3 overflow-y-auto p-4"></div>
+      <div id="chat-chips" class="flex flex-wrap gap-2 px-4 pb-2"></div>
+      <form id="chat-form" class="flex items-center gap-2 border-t border-slate-200/60 p-3 dark:border-white/10" autocomplete="off">
+        <input id="chat-input" type="text" maxlength="500" placeholder="Type your message…" aria-label="Your message" class="min-w-0 flex-1 rounded-xl border border-slate-300/70 bg-white/80 px-4 py-2.5 text-sm text-slate-800 dark:border-white/10 dark:bg-white/5 dark:text-slate-100" />
+        <button type="submit" aria-label="Send" class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-indigo-600 text-white transition hover:bg-indigo-700"><i data-lucide="send" class="h-4 w-4"></i></button>
+      </form>
+    </div>
+    <button id="chat-btn" type="button" aria-label="Open inquiry chat" class="group relative grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-xl shadow-indigo-500/40 transition hover:-translate-y-1">
+      <i data-lucide="message-circle" class="h-6 w-6"></i>
+      <span class="absolute -right-1 -top-1 h-3.5 w-3.5 animate-pulse rounded-full bg-amber-400 ring-2 ring-white dark:ring-[#0a0b14]"></span>
+    </button>
+  </div>
+
+  <div id="toast" class="no-print pointer-events-none fixed bottom-24 left-1/2 z-[100] max-w-[90vw] -translate-x-1/2 translate-y-4 rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white opacity-0 shadow-2xl transition duration-300 dark:bg-white dark:text-slate-900" role="status"></div>
+
+  <!-- ============ SCRIPTS ============ -->
+  <script>
+    /* =====================================================================
+       CONFIG — edit these
+       ===================================================================== */
+    const SUPABASE_URL = 'https://urfaixbtslvzahdlugzw.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_F41ikoFdqfqxUhBs9ijMZg_-SE04sGU'; // <-- paste your anon (public) key here
+
+    // WhatsApp number with country code, digits only (e.g. 919876543210)
+    let WHATSAPP_NUMBER = '910000000000'; // overridden by admin → Contact details
+
+    // Chat assistant answers. 'k' = keywords (Hindi / Hinglish / English), 'a' = reply.
+    const FAQ = [
+      { k: ['hi', 'hello', 'hey', 'namaste', 'namaskar', 'salaam', 'hii'],
+        a: 'Namaste! Main Vidyasparsh Publication ka assistant hoon. Aap books, publishing, services ya exam paper maker ke baare mein pooch sakte hain.' },
+      { k: ['publish', 'publication', 'chhap', 'chap', 'manuscript', 'author', 'lekhak', 'likhi', 'kitab', 'apni book'],
+        a: 'Apni book publish karwane ke liye apni manuscript hamein WhatsApp ya email par bhejiye. Hamari team use dekhkar editing, cover design aur distribution ke options ke saath aapse sampark karegi.',
+        actions: 'wa-publish' },
+      { k: ['edit', 'proofread', 'cover', 'design', 'distribution', 'distribute', 'service', 'services'],
+        a: 'Hamari services: Editing & Proofreading, Cover Design, aur Distribution. Kis service ki zaroorat hai, bata dijiye — team aapko details degi.',
+        actions: 'services' },
+      { k: ['price', 'rate', 'kimat', 'keemat', 'cost', 'charge', 'fees', 'fee', 'kitna', 'kitne'],
+        a: 'Price book ya service ke hisaab se alag hoti hai. Exact quote ke liye apni requirement bhejiye — team aapko sahi rate batayegi.',
+        actions: 'wa-price' },
+      { k: ['order', 'buy', 'kharid', 'kharidna', 'cart', 'purchase', 'mangwa', 'mangani'],
+        a: 'Books section mein "Add to cart" dabaiye, phir upar cart icon se "Send order on WhatsApp" par click karke order bhej dijiye.',
+        actions: 'books' },
+      { k: ['delivery', 'shipping', 'courier', 'dispatch', 'pahunch'],
+        a: 'Delivery ki jaankari order confirm hone par hamari team batayegi. Order WhatsApp par bhej dijiye.',
+        actions: 'wa-order' },
+      { k: ['address', 'location', 'kahan', 'kaha', 'pata', 'where', 'office', 'shop', 'dukan'],
+        a: 'Hamara pata: Mohalla Qila, Deoband, Saharanpur.' ,
+        actions: 'contact' },
+      { k: ['phone', 'call', 'number', 'contact', 'whatsapp', 'baat', 'sampark', 'mobile'],
+        a: 'Aap hamein seedha WhatsApp ya call kar sakte hain. Phone numbers neeche Contact section mein diye gaye hain.',
+        actions: 'wa-contact' },
+      { k: ['email', 'mail', 'gmail'],
+        a: 'Hamara email address Contact section mein diya gaya hai. Aap wahin se mail bhej sakte hain.',
+        actions: 'contact' },
+      { k: ['exam', 'paper', 'question', 'test', 'pariksha', 'prashn'],
+        a: 'Exam Paper Maker mein aap apni book ke questions se paper khud bana sakte hain — Manual (khud chunein) ya Automatic (tool set kare). Phir paper mein kuch bhi badal kar print ya PDF save kar sakte hain.',
+        actions: 'exam' },
+      { k: ['sample', 'chapter', 'video', 'youtube', 'demo', 'preview'],
+        a: 'Sample Chapters section mein 4 chapters YouTube video ke roop mein dekh sakte hain.',
+        actions: 'samples' },
+      { k: ['thanks', 'thank', 'shukriya', 'dhanyavaad', 'dhanyawad', 'ok', 'okay', 'theek'],
+        a: 'Aapka swagat hai! Aur kuch poochna ho to zaroor likhiye.' }
+    ];
+    const FALLBACK_REPLY = 'Aapka sawal record kar liya gaya hai. Hamari team jald aapse sampark karegi. Turant baat karni ho to WhatsApp par message kar dijiye.';
+
+    /* =====================================================================
+       Helpers
+       ===================================================================== */
+    const $ = (s, r = document) => r.querySelector(s);
+    const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+    const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    const store = {
+      get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+      set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+    };
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+    function safeUrl(value) {
+      try {
+        const u = new URL(String(value || ''), window.location.href);
+        return (u.protocol === 'http:' || u.protocol === 'https:') ? u.href : '';
+      } catch { return ''; }
+    }
+    function icons() { try { if (window.lucide) lucide.createIcons(); } catch (e) { console.warn('[Vidyasparsh] icons failed', e); } }
+    window.addEventListener('load', icons);
+    function waLink(text) { return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`; }
+    function toast(msg) {
+      const t = $('#toast'); t.textContent = msg;
+      t.classList.remove('opacity-0', 'translate-y-4');
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => t.classList.add('opacity-0', 'translate-y-4'), 2800);
+    }
+    const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+    /* Fetch a table newest-first; if ordering fails (e.g. no created_at column) retry without it */
+    async function fetchTable(table, limit) {
+      const c = getClient();
+      let res = await c.from(table).select('*').order('created_at', { ascending: false }).limit(limit);
+      if (res.error) res = await c.from(table).select('*').limit(limit);
+      if (res.error) throw res.error;
+      return res.data || [];
+    }
+    function errHint(err) {
+      const m = String((err && err.message) || err || '');
+      if (err && (err.code === '42501' || /row-level security|permission denied/i.test(m))) return ' (Supabase is blocking public read — run the SQL from admin → Setup help.)';
+      if (err && (err.code === '42P01' || /does not exist|schema cache/i.test(m))) return ' (Table not found in Supabase — run the SQL from admin → Setup help.)';
+      return m ? ' (' + m + ')' : '';
+    }
+
+    /* Supabase (shared client) */
+    let _client = null;
+    function supabaseReady() {
+      return SUPABASE_ANON_KEY && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY' && window.supabase && window.supabase.createClient;
+    }
+    function getClient() {
+      if (!supabaseReady()) return null;
+      if (!_client) _client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      return _client;
+    }
+
+    /* =====================================================================
+       Scroll reveal, theme, menu, links
+       ===================================================================== */
+    const io = 'IntersectionObserver' in window
+      ? new IntersectionObserver((entries) => {
+          entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+        }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' })
+      : null;
+    function observe(el) { io ? io.observe(el) : el.classList.add('in'); }
+    $$('.reveal').forEach(observe);
+
+    $('#theme-toggle').addEventListener('click', () => {
+      const dark = document.documentElement.classList.toggle('dark');
+      try { localStorage.setItem('vs-theme', dark ? 'dark' : 'light'); } catch (e) {}
+    });
+
+    const menuBtn = $('#menu-btn'), menu = $('#mobile-menu');
+    menuBtn.addEventListener('click', () => {
+      const open = menu.classList.toggle('hidden') === false;
+      menuBtn.setAttribute('aria-expanded', String(open));
+    });
+    $$('a', menu).forEach(a => a.addEventListener('click', () => { menu.classList.add('hidden'); menuBtn.setAttribute('aria-expanded', 'false'); }));
+
+    $('#year').textContent = new Date().getFullYear();
+    $('#footer-wa').href = waLink('Namaste Vidyasparsh Publication, mujhe jaankari chahiye.');
+    $('#social-wa').href = waLink('Namaste Vidyasparsh Publication!');
+    $('#strip-wa').href = waLink('Namaste Vidyasparsh Publication!');
+
+    // Paste plain text only into editable fields
+    document.addEventListener('paste', e => {
+      const el = e.target.closest && e.target.closest('[contenteditable="true"]');
+      if (!el) return;
+      e.preventDefault();
+      const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+      document.execCommand('insertText', false, text);
+    });
+
+    /* =====================================================================
+       BOOKS (Supabase) + CART
+       ===================================================================== */
+    const container = $('#books-container');
+    let booksCache = [];
+
+    function showSkeletons(n = 4) {
+      container.innerHTML = Array.from({ length: n }, () => `
+        <div class="glass rounded-3xl p-4">
+          <div class="skeleton aspect-[3/4] rounded-2xl bg-slate-200 dark:bg-white/5"></div>
+          <div class="skeleton mt-4 h-5 w-3/4 rounded bg-slate-200 dark:bg-white/5"></div>
+          <div class="skeleton mt-3 h-3 w-full rounded bg-slate-200 dark:bg-white/5"></div>
+          <div class="skeleton mt-2 h-3 w-2/3 rounded bg-slate-200 dark:bg-white/5"></div>
+        </div>`).join('');
+    }
+
+    function showComingSoon(message) {
+      container.innerHTML = `
+        <div class="glass relative col-span-full overflow-hidden rounded-[2rem] px-6 py-16 text-center">
+          <div class="blob left-1/2 top-0 h-48 w-48 -translate-x-1/2 bg-amber-300"></div>
+          <div class="relative mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/30">
+            <i data-lucide="book-marked" class="h-8 w-8"></i>
+          </div>
+          <h3 class="font-display relative mt-6 text-3xl font-bold text-slate-900 dark:text-white">New Books Coming Soon</h3>
+          <p class="relative mx-auto mt-3 max-w-md text-slate-600 dark:text-slate-400">${escapeHtml(message || 'Fresh stories are being finished on our desks. Check back shortly.')}</p>
+        </div>`;
+      icons();
+    }
+
+    const priceOf = b => { const p = parseFloat(b.price); return isFinite(p) ? p : null; };
+    const bookKey = b => String(b.id ?? b.title);
+
+    function coverFallback(safeTitle) {
+      return `<div class="flex h-full w-full flex-col justify-between bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 p-5 text-white">
+        <i data-lucide="feather" class="h-7 w-7 text-amber-300"></i>
+        <p class="font-display text-2xl font-bold leading-tight">${safeTitle}</p>
+      </div>`;
+    }
+
+    function bookCard(book, index) {
+      const title = escapeHtml(book.title || 'Untitled');
+      const desc = escapeHtml(book.description || '');
+      const img = safeUrl(book.image_url);
+      const link = safeUrl(book.book_link);
+      const price = priceOf(book);
+
+      const cover = img
+        ? `<img src="${escapeHtml(img)}" alt="Cover of ${title}" loading="lazy" class="book-img h-full w-full object-cover transition duration-700 group-hover:scale-110" />`
+        : coverFallback(title);
+
+      const el = document.createElement('article');
+      el.className = 'reveal glass group flex flex-col rounded-3xl p-4 transition duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-indigo-500/20';
+      el.style.transitionDelay = `${Math.min(index, 7) * 70}ms`;
+      el.innerHTML = `
+        <div class="relative aspect-[3/4] overflow-hidden rounded-2xl bg-slate-200 shadow-md dark:bg-white/5">
+          ${cover}
+          <div class="pointer-events-none absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-white/25"></div>
+          ${price !== null ? `<span class="absolute right-3 top-3 rounded-full bg-amber-400 px-3 py-1 text-xs font-extrabold text-indigo-950 shadow">₹${price}</span>` : ''}
+        </div>
+        <div class="flex flex-1 flex-col px-1 pb-1 pt-5">
+          <h3 class="font-display text-xl font-bold leading-snug text-slate-900 dark:text-white">${title}</h3>
+          ${desc ? `<p class="mt-2 line-clamp-3 text-sm leading-relaxed text-slate-600 dark:text-slate-400">${desc}</p>` : ''}
+          <div class="mt-auto flex flex-wrap items-center gap-2 pt-5">
+            <button type="button" data-add="${index}" data-key="${escapeHtml(bookKey(book))}" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-indigo-700">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg> Add to cart
+            </button>
+            ${link ? `<a href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900/5 px-4 py-2.5 text-sm font-bold text-slate-800 transition hover:bg-slate-900/10 dark:bg-white/10 dark:text-white">View <i data-lucide="arrow-up-right" class="h-4 w-4"></i></a>` : ''}
+          </div>
+        </div>`;
+
+      const imgEl = el.querySelector('.book-img');
+      if (imgEl) {
+        imgEl.addEventListener('error', () => { imgEl.parentElement.querySelector('.book-img').outerHTML = coverFallback(title); icons(); }, { once: true });
+      }
+      return el;
+    }
+
+    async function loadBooks() {
+      showSkeletons();
+      if (!supabaseReady()) {
+        console.warn('[Vidyasparsh] Add your Supabase anon key in index.html to load books.');
+        showComingSoon();
+        return;
+      }
+      try {
+        const data = await fetchTable('books', 24);
+        if (!data || data.length === 0) {
+          console.warn('[Vidyasparsh] The books table returned 0 rows. If books exist in Supabase, public read (RLS select policy) is blocked.');
+          showComingSoon(/[?&]debug=1/.test(location.search) ? 'Debug: Supabase returned 0 books. If you added books, public read is blocked — run the SQL from admin → Setup help.' : '');
+          return;
+        }
+        booksCache = data;
+        container.innerHTML = '';
+        const frag = document.createDocumentFragment();
+        data.forEach((book, i) => {
+          try { frag.appendChild(bookCard(book, i)); }
+          catch (e) { console.error('[Vidyasparsh] Could not draw book', book, e); }
+        });
+        container.appendChild(frag);
+        $$('.reveal', container).forEach(observe);
+        icons();
+      } catch (err) {
+        console.error('[Vidyasparsh] Failed to fetch books:', err);
+        showComingSoon('We could not load our catalogue just now. Please refresh in a moment.' + errHint(err));
+      }
+    }
+
+    container.addEventListener('click', e => {
+      const btn = e.target.closest('[data-add]');
+      if (!btn) return;
+      e.preventDefault();
+      // Find the book by its key first (safe even if the list reloads), then by position
+      const book = booksCache.find(b => bookKey(b) === btn.dataset.key) || booksCache[Number(btn.dataset.add)];
+      if (!book) { toast('Please refresh the page and try again'); return; }
+      try { addToCart(book); }
+      catch (err) { console.error('[Vidyasparsh] Add to cart failed:', err); toast('Could not add to cart. Please refresh and try again.'); }
+    });
+
+    /* ---------- Cart ---------- */
+    // Ignore a damaged saved cart so it can never block adding books
+    let cart = store.get('vs-cart', []);
+    if (!Array.isArray(cart)) cart = [];
+    cart = cart.filter(x => x && typeof x === 'object' && x.key != null)
+               .map(x => ({ key: String(x.key), title: String(x.title || 'Untitled'), price: (x.price === null || x.price === undefined || !isFinite(Number(x.price))) ? null : Number(x.price), qty: Math.max(1, parseInt(x.qty, 10) || 1) }));
+    const cartPanel = $('#cart-panel'), cartOverlay = $('#cart-overlay');
+
+    function saveCart() {
+      store.set('vs-cart', cart);
+      try { renderCart(); } catch (err) { console.error('[Vidyasparsh] cart display failed:', err); }
+    }
+    function addToCart(book) {
+      const k = bookKey(book);
+      const it = cart.find(x => x.key === k);
+      if (it) it.qty++; else cart.push({ key: k, title: book.title || 'Untitled', price: priceOf(book), qty: 1 });
+      saveCart();
+      toast(`"${book.title || 'Book'}" added to cart`);
+    }
+    function renderCart() {
+      const count = cart.reduce((s, x) => s + x.qty, 0);
+      const badge = $('#cart-count');
+      badge.textContent = count; badge.style.display = count ? 'block' : 'none';
+
+      const list = $('#cart-items');
+      if (!cart.length) {
+        list.innerHTML = `<div class="grid h-full place-items-center text-center text-slate-500 dark:text-slate-400">
+          <div><div class="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-indigo-500/10 text-indigo-600"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8" aria-hidden="true"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg></div>
+          <p class="mt-4 font-semibold">Your cart is empty</p><p class="mt-1 text-sm">Add books from the Books section.</p></div></div>`;
+      } else {
+        list.innerHTML = cart.map(x => `
+          <div class="flex items-center gap-3 rounded-2xl bg-slate-900/5 p-3 dark:bg-white/5">
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-sm font-bold text-slate-900 dark:text-white">${escapeHtml(x.title)}</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400">${x.price !== null ? '₹' + x.price + ' each' : 'Price on confirmation'}</p>
+            </div>
+            <div class="flex items-center gap-1">
+              <button type="button" data-cart="dec" data-key="${escapeHtml(x.key)}" aria-label="Decrease" class="grid h-8 w-8 place-items-center rounded-lg bg-white text-slate-700 shadow-sm dark:bg-white/10 dark:text-white"><i data-lucide="minus" class="h-4 w-4"></i></button>
+              <span class="w-6 text-center text-sm font-bold">${x.qty}</span>
+              <button type="button" data-cart="inc" data-key="${escapeHtml(x.key)}" aria-label="Increase" class="grid h-8 w-8 place-items-center rounded-lg bg-white text-slate-700 shadow-sm dark:bg-white/10 dark:text-white"><i data-lucide="plus" class="h-4 w-4"></i></button>
+              <button type="button" data-cart="rm" data-key="${escapeHtml(x.key)}" aria-label="Remove" class="ml-1 grid h-8 w-8 place-items-center rounded-lg text-rose-500 hover:bg-rose-500/10"><i data-lucide="trash-2" class="h-4 w-4"></i></button>
+            </div>
+          </div>`).join('');
+      }
+
+      const allPriced = cart.length && cart.every(x => x.price !== null);
+      const total = cart.reduce((s, x) => s + (x.price || 0) * x.qty, 0);
+      $('#cart-total').textContent = !cart.length ? '—' : (allPriced ? '₹' + total : 'Confirmed on WhatsApp');
+
+      const order = $('#cart-order');
+      if (cart.length) {
+        const lines = cart.map((x, i) => `${i + 1}. ${x.title} × ${x.qty}${x.price !== null ? ` (₹${x.price * x.qty})` : ''}`);
+        const msg = `Namaste Vidyasparsh Publication, mujhe ye books order karni hain:\n${lines.join('\n')}${allPriced ? `\nTotal: ₹${total}` : ''}\n\nMera naam aur pata: `;
+        order.href = waLink(msg);
+        order.classList.remove('pointer-events-none', 'opacity-50');
+      } else {
+        order.href = '#'; order.classList.add('pointer-events-none', 'opacity-50');
+      }
+      icons();
+    }
+    $('#cart-items').addEventListener('click', e => {
+      const b = e.target.closest('[data-cart]'); if (!b) return;
+      const it = cart.find(x => x.key === b.dataset.key); if (!it) return;
+      if (b.dataset.cart === 'inc') it.qty++;
+      else if (b.dataset.cart === 'dec') it.qty = Math.max(1, it.qty - 1);
+      else cart = cart.filter(x => x !== it);
+      saveCart();
+    });
+    $('#cart-clear').addEventListener('click', () => { cart = []; saveCart(); });
+    function openCart() { cartOverlay.classList.remove('hidden'); cartPanel.classList.remove('translate-x-full'); cartPanel.setAttribute('aria-hidden', 'false'); }
+    function closeCart() { cartOverlay.classList.add('hidden'); cartPanel.classList.add('translate-x-full'); cartPanel.setAttribute('aria-hidden', 'true'); }
+    $('#cart-btn').addEventListener('click', openCart);
+    $('#cart-close').addEventListener('click', closeCart);
+    cartOverlay.addEventListener('click', closeCart);
+
+    /* =====================================================================
+       SAMPLE CHAPTERS (YouTube)
+       ===================================================================== */
+    function ytId(input) {
+      if (!input) return null;
+      const s = String(input).trim();
+      const ok = id => (/^[\w-]{11}$/.test(id || '') ? id : null);
+      if (ok(s)) return s;
+      try {
+        const u = new URL(s);
+        const host = u.hostname.replace(/^www\./, '');
+        if (host === 'youtu.be') return ok(u.pathname.slice(1, 12));
+        if (host.endsWith('youtube.com') || host.endsWith('youtube-nocookie.com')) {
+          if (u.searchParams.get('v')) return ok(u.searchParams.get('v'));
+          const m = u.pathname.match(/\/(embed|shorts|live)\/([\w-]{11})/);
+          if (m) return ok(m[2]);
+        }
+      } catch {}
+      return null;
+    }
+
+    function showVideoSkeletons(n = 4) {
+      $('#samples-grid').innerHTML = Array.from({ length: n }, () => `
+        <div class="glass overflow-hidden rounded-3xl">
+          <div class="skeleton aspect-video bg-slate-200 dark:bg-white/5"></div>
+          <div class="p-5">
+            <div class="skeleton h-5 w-3/4 rounded bg-slate-200 dark:bg-white/5"></div>
+            <div class="skeleton mt-3 h-3 w-1/2 rounded bg-slate-200 dark:bg-white/5"></div>
+          </div>
+        </div>`).join('');
+    }
+
+    function showVideosMessage(message) {
+      $('#samples-grid').innerHTML = `
+        <div class="glass col-span-full rounded-3xl px-6 py-12 text-center">
+          <div class="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/30"><i data-lucide="film" class="h-7 w-7"></i></div>
+          <p class="mt-4 text-slate-600 dark:text-slate-400">${escapeHtml(message)}</p>
+        </div>`;
+      icons();
+    }
+
+    function renderVideos(videos) {
+      const grid = $('#samples-grid');
+      grid.innerHTML = '';
+      videos.forEach((v, i) => {
+        const title = v.title || 'Untitled';
+        const teacher = v.teacher_name ?? v.teacher ?? '';
+        const subject = v.subject || '';
+        const id = ytId(v.youtube_url ?? v.video_url ?? v.url);
+        const sub = [teacher, subject].filter(Boolean).join(' · ');
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'reveal glass group overflow-hidden rounded-3xl text-left transition duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-indigo-500/20';
+        card.style.transitionDelay = `${Math.min(i, 7) * 80}ms`;
+        card.innerHTML = `
+          <div class="relative aspect-video overflow-hidden bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600">
+            ${id ? `<img src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" alt="" loading="lazy" class="h-full w-full object-cover transition duration-700 group-hover:scale-110" />` : `<div class="grid h-full place-items-center text-white/80"><i data-lucide="film" class="h-10 w-10"></i></div>`}
+            <div class="absolute inset-0 grid place-items-center bg-slate-950/20 transition group-hover:bg-slate-950/10">
+              <span class="grid h-14 w-14 place-items-center rounded-full bg-white/90 text-indigo-700 shadow-xl transition group-hover:scale-110"><i data-lucide="play" class="ml-0.5 h-6 w-6"></i></span>
+            </div>
+            <span class="absolute left-3 top-3 rounded-full bg-amber-400 px-3 py-1 text-[11px] font-extrabold text-indigo-950">Chapter ${i + 1}</span>
+          </div>
+          <div class="p-5">
+            <h3 class="font-display text-lg font-bold text-slate-900 dark:text-white">${escapeHtml(title)}</h3>
+            <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">${escapeHtml(sub)}</p>
+            <span class="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-indigo-600 dark:text-amber-300">Watch sample <i data-lucide="arrow-right" class="h-4 w-4 transition-transform group-hover:translate-x-1"></i></span>
+          </div>`;
+        card.addEventListener('click', () => openVideo(id, title));
+        grid.appendChild(card);
+        observe(card);
+      });
+      icons();
+    }
+
+    async function loadVideos() {
+      showVideoSkeletons();
+      if (!supabaseReady()) {
+        console.warn('[Vidyasparsh] Add your Supabase anon key in index.html to load videos.');
+        showVideosMessage('Sample chapters are coming soon.');
+        return;
+      }
+      try {
+        const data = await fetchTable('videos', 8);
+        if (!data || data.length === 0) { showVideosMessage('Sample chapters are coming soon.'); return; }
+        renderVideos(data);
+      } catch (err) {
+        console.error('[Vidyasparsh] Failed to fetch videos:', err);
+        showVideosMessage('We could not load the sample chapters just now. Please refresh in a moment.' + errHint(err));
+      }
+    }
+
+    const videoModal = $('#video-modal'), videoFrame = $('#video-frame');
+    function openVideo(id, title) {
+      if (!id) { toast('This video’s YouTube link is missing or invalid.'); return; }
+      $('#video-title').textContent = title || '';
+      videoFrame.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`;
+      videoModal.classList.remove('hidden'); videoModal.classList.add('flex');
+    }
+    function closeVideo() { videoFrame.src = ''; videoModal.classList.add('hidden'); videoModal.classList.remove('flex'); }
+    $('#video-close').addEventListener('click', closeVideo);
+    videoModal.addEventListener('click', e => { if (e.target === videoModal) closeVideo(); });
+
+    /* =====================================================================
+       EXAM PAPER MAKER
+       ===================================================================== */
+    const TYPES = {
+      mcq:   { label: 'Multiple Choice Questions', short: 'MCQ', marks: 1 },
+      fill:  { label: 'Fill in the Blanks',        short: 'Fill', marks: 1 },
+      short: { label: 'Short Answer Questions',    short: 'Short', marks: 2 },
+      long:  { label: 'Long Answer Questions',     short: 'Long', marks: 5 }
+    };
+    const TYPE_ORDER = ['mcq', 'fill', 'short', 'long'];
+
+    // Sample questions so the tool works out of the box. Replace via the Supabase "questions" table or the "Add your own question" form.
+    const DEFAULT_BANK = [
+      { id: 'd1',  chapter: 'Chapter 1 (Sample)', type: 'mcq',   marks: 1, text: 'Which planet is known as the Red Planet?\n(a) Venus   (b) Mars   (c) Jupiter   (d) Saturn' },
+      { id: 'd2',  chapter: 'Chapter 1 (Sample)', type: 'mcq',   marks: 1, text: 'The process by which plants make their food is called:\n(a) Respiration   (b) Digestion   (c) Photosynthesis   (d) Transpiration' },
+      { id: 'd3',  chapter: 'Chapter 1 (Sample)', type: 'mcq',   marks: 1, text: 'Which gas do humans need to breathe in?\n(a) Nitrogen   (b) Carbon dioxide   (c) Oxygen   (d) Helium' },
+      { id: 'd4',  chapter: 'Chapter 1 (Sample)', type: 'fill',  marks: 1, text: 'Water boils at ______ °C at sea level.' },
+      { id: 'd5',  chapter: 'Chapter 1 (Sample)', type: 'fill',  marks: 1, text: 'The Sun is a ______.' },
+      { id: 'd6',  chapter: 'Chapter 1 (Sample)', type: 'short', marks: 2, text: 'Define photosynthesis.' },
+      { id: 'd7',  chapter: 'Chapter 1 (Sample)', type: 'short', marks: 2, text: 'Name any two states of matter.' },
+      { id: 'd8',  chapter: 'Chapter 1 (Sample)', type: 'long',  marks: 5, text: 'Explain the water cycle with a neat labelled diagram.' },
+      { id: 'd9',  chapter: 'Chapter 2 (Sample)', type: 'mcq',   marks: 1, text: 'Which is the largest ocean on Earth?\n(a) Atlantic   (b) Indian   (c) Pacific   (d) Arctic' },
+      { id: 'd10', chapter: 'Chapter 2 (Sample)', type: 'mcq',   marks: 1, text: 'How many continents are there?\n(a) 5   (b) 6   (c) 7   (d) 8' },
+      { id: 'd11', chapter: 'Chapter 2 (Sample)', type: 'mcq',   marks: 1, text: 'The capital of India is:\n(a) Mumbai   (b) New Delhi   (c) Kolkata   (d) Chennai' },
+      { id: 'd12', chapter: 'Chapter 2 (Sample)', type: 'fill',  marks: 1, text: 'The Earth revolves around the ______.' },
+      { id: 'd13', chapter: 'Chapter 2 (Sample)', type: 'fill',  marks: 1, text: 'India became independent in the year ______.' },
+      { id: 'd14', chapter: 'Chapter 2 (Sample)', type: 'short', marks: 2, text: 'What is a continent? Name any two.' },
+      { id: 'd15', chapter: 'Chapter 2 (Sample)', type: 'short', marks: 2, text: 'Why do we have day and night?' },
+      { id: 'd16', chapter: 'Chapter 2 (Sample)', type: 'long',  marks: 5, text: 'Describe the layers of the Earth.' }
+    ];
+
+    let bank = [];
+    let remoteBank = null;
+    let paper = store.get('vs-paper', []);
+    const autoOff = new Set();           // chapters unchecked in Automatic mode
+    const customQs = () => store.get('vs-custom-questions', []);
+
+    function mapRemote(rows) {
+      return rows.map((r, i) => {
+        const t = String(r.type || '').toLowerCase();
+        const type = TYPE_ORDER.includes(t) ? t : 'short';
+        return { id: 'r' + (r.id ?? i), text: String(r.question ?? r.text ?? '').trim(), type,
+                 marks: Number(r.marks) || TYPES[type].marks, chapter: String(r.chapter || 'General') };
+      }).filter(q => q.text);
+    }
+    function rebuildBank() {
+      bank = [...(remoteBank && remoteBank.length ? remoteBank : DEFAULT_BANK), ...customQs()];
+      renderChapterFilter(); renderBank(); renderAutoControls();
+    }
+    const chapters = () => [...new Set(bank.map(q => q.chapter))];
+
+    function renderChapterFilter() {
+      const sel = $('#flt-chapter'); const prev = sel.value;
+      sel.innerHTML = '<option value="">All chapters</option>' + chapters().map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+      if (chapters().includes(prev)) sel.value = prev;
+    }
+
+    function chip(text, cls = '') { return `<span class="rounded-md px-2 py-0.5 text-[10px] font-bold ${cls || 'bg-slate-900/5 text-slate-600 dark:bg-white/10 dark:text-slate-300'}">${escapeHtml(text)}</span>`; }
+
+    function renderBank() {
+      const ch = $('#flt-chapter').value, ty = $('#flt-type').value;
+      const inPaper = new Set(paper.map(q => q.bid));
+      const items = bank.filter(q => (!ch || q.chapter === ch) && (!ty || q.type === ty));
+      $('#bank-list').innerHTML = items.length ? items.map(q => `
+        <div class="flex items-start gap-3 rounded-2xl border border-slate-200/70 bg-white/60 p-3 dark:border-white/10 dark:bg-white/5">
+          <div class="min-w-0 flex-1">
+            <p class="line-clamp-3 whitespace-pre-line text-sm text-slate-800 dark:text-slate-200">${escapeHtml(q.text)}</p>
+            <div class="mt-2 flex flex-wrap gap-1">${chip(TYPES[q.type].short, 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300')}${chip(q.marks + (q.marks === 1 ? ' mark' : ' marks'))}${chip(q.chapter)}</div>
+          </div>
+          <div class="flex shrink-0 flex-col gap-1.5">
+            <button type="button" data-bank-toggle="${escapeHtml(q.id)}" class="rounded-lg px-3 py-1.5 text-xs font-bold transition ${inPaper.has(q.id) ? 'bg-emerald-500 text-white' : 'bg-indigo-600 text-white hover:bg-indigo-700'}">${inPaper.has(q.id) ? '✓ Added' : '+ Add'}</button>
+            ${q.id.startsWith('c') ? `<button type="button" data-bank-del="${escapeHtml(q.id)}" class="rounded-lg px-3 py-1.5 text-xs font-bold text-rose-500 hover:bg-rose-500/10">Delete</button>` : ''}
+          </div>
+        </div>`).join('') : '<p class="py-8 text-center text-sm text-slate-500">No questions match.</p>';
+    }
+
+    function renderAutoControls() {
+      $('#auto-chapters').innerHTML = chapters().map(c => `
+        <label class="flex cursor-pointer items-center gap-2 rounded-xl bg-slate-900/5 px-3 py-2 text-sm font-semibold dark:bg-white/10">
+          <input type="checkbox" class="auto-ch rounded" value="${escapeHtml(c)}" ${autoOff.has(c) ? '' : 'checked'} /> ${escapeHtml(c)}
+        </label>`).join('');
+      if (!$('#auto-types').children.length) {
+        const defaults = { mcq: 5, fill: 3, short: 2, long: 1 };
+        $('#auto-types').innerHTML = TYPE_ORDER.map(t => `
+          <div class="flex items-center gap-2 rounded-xl bg-slate-900/5 p-2.5 dark:bg-white/10">
+            <div class="min-w-0 flex-1"><p class="text-sm font-bold">${TYPES[t].label}</p><p class="text-[11px] text-slate-500 dark:text-slate-400">Available: <span id="av-${t}">0</span></p></div>
+            <label class="text-[11px] font-bold text-slate-500">Qty<input id="n-${t}" type="number" min="0" value="${defaults[t]}" class="mt-0.5 block w-14 rounded-lg border border-slate-300/70 bg-white/80 px-2 py-1.5 text-sm text-slate-800 dark:border-white/10 dark:bg-white/5 dark:text-slate-100" /></label>
+            <label class="text-[11px] font-bold text-slate-500">Marks<input id="m-${t}" type="number" min="0" value="${TYPES[t].marks}" class="mt-0.5 block w-14 rounded-lg border border-slate-300/70 bg-white/80 px-2 py-1.5 text-sm text-slate-800 dark:border-white/10 dark:bg-white/5 dark:text-slate-100" /></label>
+          </div>`).join('');
+      }
+      updateAvail();
+    }
+    const selectedChapters = () => chapters().filter(c => !autoOff.has(c));
+    function updateAvail() {
+      const pool = bank.filter(q => selectedChapters().includes(q.chapter));
+      TYPE_ORDER.forEach(t => { const el = $('#av-' + t); if (el) el.textContent = pool.filter(q => q.type === t).length; });
+    }
+    $('#auto-chapters').addEventListener('change', e => {
+      if (!e.target.classList.contains('auto-ch')) return;
+      e.target.checked ? autoOff.delete(e.target.value) : autoOff.add(e.target.value);
+      updateAvail();
+    });
+
+    /* ----- paper ----- */
+    function savePaper() { store.set('vs-paper', paper); }
+    function updateTotal() { $('#paper-total').textContent = paper.reduce((s, q) => s + (Number(q.marks) || 0), 0); }
+
+    function renderPaper() {
+      const body = $('#paper-body');
+      if (!paper.length) {
+        body.innerHTML = `<div class="no-print rounded-2xl border-2 border-dashed border-slate-300 p-10 text-center text-slate-500">
+          <p class="font-semibold">Your paper is empty</p><p class="mt-1 text-sm">Add questions in Manual mode, or press “Generate paper” in Automatic mode.</p></div>`;
+        updateTotal(); renderBank(); return;
+      }
+      let n = 0, sec = 0, html = '';
+      TYPE_ORDER.forEach(t => {
+        const items = paper.filter(q => q.type === t);
+        if (!items.length) return;
+        html += `<div class="mb-3 mt-6 border-b border-slate-400 pb-1"><h4 class="font-display text-base font-bold uppercase tracking-wide">Section ${String.fromCharCode(65 + sec++)} — ${TYPES[t].label}</h4></div>`;
+        items.forEach(q => {
+          n++;
+          html += `
+            <div class="q mb-4 flex gap-3" data-id="${escapeHtml(q.id)}">
+              <span class="w-7 shrink-0 font-bold">${n}.</span>
+              <div class="min-w-0 flex-1">
+                <div contenteditable="true" data-role="text" class="whitespace-pre-wrap rounded text-[15px] leading-relaxed">${escapeHtml(q.text)}</div>
+                <div class="no-print mt-1.5 flex gap-1 text-slate-500">
+                  <button type="button" data-act="up" aria-label="Move up" class="grid h-7 w-7 place-items-center rounded-md bg-slate-100 hover:bg-indigo-100 hover:text-indigo-700"><i data-lucide="arrow-up" class="h-3.5 w-3.5"></i></button>
+                  <button type="button" data-act="down" aria-label="Move down" class="grid h-7 w-7 place-items-center rounded-md bg-slate-100 hover:bg-indigo-100 hover:text-indigo-700"><i data-lucide="arrow-down" class="h-3.5 w-3.5"></i></button>
+                  <button type="button" data-act="swap" aria-label="Swap for another question" title="Swap for another question" class="grid h-7 w-7 place-items-center rounded-md bg-slate-100 hover:bg-amber-100 hover:text-amber-700"><i data-lucide="shuffle" class="h-3.5 w-3.5"></i></button>
+                  <button type="button" data-act="del" aria-label="Remove" class="grid h-7 w-7 place-items-center rounded-md bg-slate-100 hover:bg-rose-100 hover:text-rose-600"><i data-lucide="trash-2" class="h-3.5 w-3.5"></i></button>
+                </div>
+              </div>
+              <div class="shrink-0 whitespace-nowrap text-sm font-semibold">[<input type="number" min="0" data-role="marks" value="${Number(q.marks) || 0}" aria-label="Marks" class="marks-input w-8 bg-transparent text-center outline-none" />]</div>
+            </div>`;
+        });
+      });
+      body.innerHTML = html;
+      updateTotal(); icons(); renderBank();
+    }
+
+    function addToPaper(bq, marks) {
+      paper.push({ id: uid(), bid: bq.id, text: bq.text, type: bq.type, marks: marks ?? bq.marks, chapter: bq.chapter });
+    }
+    function moveQ(id, dir) {
+      const i = paper.findIndex(q => q.id === id); if (i < 0) return;
+      let j = i + dir;
+      while (j >= 0 && j < paper.length && paper[j].type !== paper[i].type) j += dir;
+      if (j < 0 || j >= paper.length) return;
+      [paper[i], paper[j]] = [paper[j], paper[i]];
+    }
+    function swapQ(id) {
+      const i = paper.findIndex(q => q.id === id); if (i < 0) return;
+      const cur = paper[i], used = new Set(paper.map(q => q.bid));
+      const cands = bank.filter(q => q.type === cur.type && !used.has(q.id));
+      if (!cands.length) { toast('No other question of this type in the bank'); return; }
+      const n = cands[Math.floor(Math.random() * cands.length)];
+      paper[i] = { id: uid(), bid: n.id, text: n.text, type: n.type, marks: cur.marks, chapter: n.chapter };
+    }
+
+    $('#paper-body').addEventListener('click', e => {
+      const b = e.target.closest('[data-act]'); if (!b) return;
+      const id = b.closest('.q').dataset.id;
+      if (b.dataset.act === 'up') moveQ(id, -1);
+      else if (b.dataset.act === 'down') moveQ(id, 1);
+      else if (b.dataset.act === 'swap') swapQ(id);
+      else if (b.dataset.act === 'del') paper = paper.filter(q => q.id !== id);
+      savePaper(); renderPaper();
+    });
+    $('#paper-body').addEventListener('input', e => {
+      const row = e.target.closest('.q'); if (!row) return;
+      const q = paper.find(x => x.id === row.dataset.id); if (!q) return;
+      if (e.target.dataset.role === 'text') q.text = e.target.innerText.replace(/\u00a0/g, ' ').trimEnd();
+      if (e.target.dataset.role === 'marks') { q.marks = Math.max(0, Number(e.target.value) || 0); updateTotal(); }
+      savePaper();
+    });
+
+    $('#bank-list').addEventListener('click', e => {
+      const tog = e.target.closest('[data-bank-toggle]');
+      const del = e.target.closest('[data-bank-del]');
+      if (tog) {
+        const id = tog.dataset.bankToggle;
+        if (paper.some(q => q.bid === id)) paper = paper.filter(q => q.bid !== id);
+        else { const bq = bank.find(q => q.id === id); if (bq) addToPaper(bq); }
+        savePaper(); renderPaper();
+      } else if (del) {
+        const id = del.dataset.bankDel;
+        store.set('vs-custom-questions', customQs().filter(q => q.id !== id));
+        paper = paper.filter(q => q.bid !== id);
+        savePaper(); rebuildBank(); renderPaper();
+      }
+    });
+    $('#flt-chapter').addEventListener('change', renderBank);
+    $('#flt-type').addEventListener('change', renderBank);
+
+    /* Mode switch */
+    function setMode(mode) {
+      const manual = mode === 'manual';
+      $('#panel-manual').classList.toggle('hidden', !manual);
+      $('#panel-auto').classList.toggle('hidden', manual);
+      const on = 'bg-white text-indigo-700 shadow dark:bg-indigo-600 dark:text-white';
+      const off = 'text-slate-600 dark:text-slate-300';
+      $('#mode-manual').className = `flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold ${manual ? on : off}`;
+      $('#mode-auto').className = `flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold ${manual ? off : on}`;
+      $('#mode-manual').setAttribute('aria-selected', manual); $('#mode-auto').setAttribute('aria-selected', !manual);
+    }
+    $('#mode-manual').addEventListener('click', () => setMode('manual'));
+    $('#mode-auto').addEventListener('click', () => setMode('auto'));
+
+    /* Automatic generation */
+    $('#btn-generate').addEventListener('click', () => {
+      const pool = bank.filter(q => selectedChapters().includes(q.chapter));
+      if (!pool.length) { toast('Select at least one chapter'); return; }
+      const out = [], short = [];
+      TYPE_ORDER.forEach(t => {
+        const want = Math.max(0, parseInt($('#n-' + t).value, 10) || 0);
+        const marks = Math.max(0, Number($('#m-' + t).value) || 0);
+        const cand = shuffle(pool.filter(q => q.type === t));
+        if (cand.length < want) short.push(`${TYPES[t].short}: only ${cand.length} available`);
+        cand.slice(0, want).forEach(q => out.push({ id: uid(), bid: q.id, text: q.text, type: q.type, marks, chapter: q.chapter }));
+      });
+      if (!out.length) { toast('Set at least one question quantity'); return; }
+      paper = out; savePaper(); renderPaper();
+      toast(short.length ? 'Paper ready — ' + short.join(', ') : 'Paper generated. You can edit anything now.');
+    });
+
+    $('#btn-clear').addEventListener('click', () => {
+      if (!paper.length || confirm('Remove all questions from the paper?')) { paper = []; savePaper(); renderPaper(); }
+    });
+    $('#btn-print').addEventListener('click', () => {
+      if (!paper.length) { toast('Add some questions to the paper first'); return; }
+      document.body.classList.add('printing-paper');
+      window.print();
+    });
+    window.addEventListener('afterprint', () => document.body.classList.remove('printing-paper'));
+
+    /* Add own question */
+    $('#nq-type').addEventListener('change', e => { $('#nq-marks').value = TYPES[e.target.value].marks; });
+    $('#nq-save').addEventListener('click', () => {
+      const text = $('#nq-text').value.trim();
+      if (!text) { toast('Please type the question first'); return; }
+      const type = $('#nq-type').value;
+      const q = { id: 'c' + uid(), text, type, marks: Math.max(0, Number($('#nq-marks').value) || TYPES[type].marks), chapter: $('#nq-chapter').value.trim() || 'My Questions', custom: true };
+      store.set('vs-custom-questions', [...customQs(), q]);
+      if ($('#nq-add').checked) addToPaper(q);
+      $('#nq-text').value = '';
+      savePaper(); rebuildBank(); renderPaper();
+      toast('Question saved');
+    });
+
+    /* Editable header fields: remember edits */
+    const metaStore = store.get('vs-paper-meta', {});
+    $$('[data-meta]').forEach(el => {
+      const k = el.dataset.meta;
+      if (metaStore[k] != null) el.textContent = metaStore[k];
+      el.addEventListener('input', () => { metaStore[k] = el.innerText; store.set('vs-paper-meta', metaStore); });
+    });
+
+    async function loadQuestions() {
+      if (supabaseReady()) {
+        try {
+          const { data, error } = await getClient().from('questions').select('*').limit(1000);
+          if (!error && data && data.length) remoteBank = mapRemote(data);
+        } catch (err) { console.warn('[Vidyasparsh] questions table not available, using sample bank.'); }
+      }
+      rebuildBank();
+    }
+
+    /* =====================================================================
+       INQUIRY CHAT — records every message in Supabase table "inquiries"
+       ===================================================================== */
+    const chatPanel = $('#chat-panel'), chatMsgs = $('#chat-msgs'), chatChips = $('#chat-chips'), chatInput = $('#chat-input');
+    const chat = { user: store.get('vs-chat-user', null), sid: store.get('vs-chat-sid', null), greeted: false, busy: false };
+    if (!chat.sid) { chat.sid = uid(); store.set('vs-chat-sid', chat.sid); }
+    chat.step = chat.user ? 'chat' : 'name';
+
+    function queueInquiry(row) { const q = store.get('vs-inquiry-queue', []); q.push(row); store.set('vs-inquiry-queue', q.slice(-100)); }
+    async function flushInquiries() {
+      const q = store.get('vs-inquiry-queue', []); const c = getClient();
+      if (!q.length || !c) return;
+      try { const { error } = await c.from('inquiries').insert(q); if (!error) store.set('vs-inquiry-queue', []); } catch {}
+    }
+    async function recordInquiry(message, reply) {
+      const row = { session_id: chat.sid, name: chat.user?.name || null, phone: chat.user?.phone || null, message, reply };
+      const c = getClient();
+      if (!c) { queueInquiry(row); return; }
+      try {
+        const { error } = await c.from('inquiries').insert(row);
+        if (error) throw error;
+        flushInquiries();
+      } catch (err) { console.warn('[Vidyasparsh] Could not save inquiry, will retry later:', err); queueInquiry(row); }
+    }
+
+    function addMsg(role, text, actions = []) {
+      const wrap = document.createElement('div');
+      wrap.className = role === 'user' ? 'flex justify-end' : 'flex';
+      const b = document.createElement('div');
+      b.className = role === 'user'
+        ? 'max-w-[85%] rounded-2xl rounded-br-md bg-indigo-600 px-4 py-2.5 text-sm text-white'
+        : 'max-w-[85%] rounded-2xl rounded-bl-md bg-slate-100 px-4 py-2.5 text-sm text-slate-800 dark:bg-white/10 dark:text-slate-100';
+      b.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
+      if (actions.length) {
+        const row = document.createElement('div'); row.className = 'mt-2.5 flex flex-wrap gap-2';
+        actions.forEach(a => {
+          const l = document.createElement('a'); l.href = a.href; l.textContent = a.label;
+          l.className = 'rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-indigo-700 shadow-sm transition hover:bg-indigo-50 dark:bg-white/10 dark:text-amber-300';
+          if (a.external) { l.target = '_blank'; l.rel = 'noopener noreferrer'; } else l.addEventListener('click', closeChat);
+          row.appendChild(l);
+        });
+        b.appendChild(row);
+      }
+      wrap.appendChild(b); chatMsgs.appendChild(wrap); chatMsgs.scrollTop = chatMsgs.scrollHeight;
+    }
+    function typing(on) {
+      let t = $('#chat-typing');
+      if (on && !t) {
+        t = document.createElement('div'); t.id = 'chat-typing'; t.className = 'flex';
+        t.innerHTML = '<div class="flex gap-1 rounded-2xl rounded-bl-md bg-slate-100 px-4 py-3 dark:bg-white/10"><span class="dot h-2 w-2 rounded-full bg-slate-400"></span><span class="dot h-2 w-2 rounded-full bg-slate-400"></span><span class="dot h-2 w-2 rounded-full bg-slate-400"></span></div>';
+        chatMsgs.appendChild(t); chatMsgs.scrollTop = chatMsgs.scrollHeight;
+      } else if (!on && t) t.remove();
+    }
+    function botSay(text, actions = [], delay = 650) {
+      return new Promise(res => { typing(true); setTimeout(() => { typing(false); addMsg('bot', text, actions); res(); }, delay); });
+    }
+
+    function actionsFor(key) {
+      const wa = (label, msg) => ({ label, href: waLink(msg), external: true });
+      switch (key) {
+        case 'wa-publish': return [wa('Send manuscript on WhatsApp', 'Namaste, main apni book publish karwana chahta/chahti hoon.')];
+        case 'wa-price':   return [wa('Ask for a quote', 'Namaste, mujhe price/quote jaanna hai.')];
+        case 'wa-order':   return [wa('Place order on WhatsApp', 'Namaste, mujhe books order karni hain.')];
+        case 'wa-contact': return [wa('Open WhatsApp', 'Namaste Vidyasparsh Publication!'), { label: 'Contact details', href: '#contact' }];
+        case 'services':   return [{ label: 'See services', href: '#services' }];
+        case 'books':      return [{ label: 'Go to Books', href: '#bestsellers' }];
+        case 'contact':    return [{ label: 'Contact details', href: '#contact' }];
+        case 'exam':       return [{ label: 'Open Exam Paper Maker', href: '#exam-paper' }];
+        case 'samples':    return [{ label: 'Watch samples', href: '#samples' }];
+        default: return [];
+      }
+    }
+    function answer(text) {
+      const words = text.toLowerCase().split(/[^a-z0-9\u0900-\u097f]+/).filter(Boolean);
+      const lower = text.toLowerCase();
+      for (const f of FAQ) {
+        if (f.k.some(k => (k.length <= 3 ? words.includes(k) : lower.includes(k)))) return { text: f.a, actions: actionsFor(f.actions) };
+      }
+      return { text: FALLBACK_REPLY, actions: actionsFor('wa-contact') };
+    }
+
+    const CHIPS = ['I want to publish a book', 'How do I order books?', 'Exam paper maker', 'Address & contact'];
+    function showChips() {
+      chatChips.innerHTML = CHIPS.map(c => `<button type="button" class="rounded-full bg-indigo-500/10 px-3 py-1.5 text-xs font-bold text-indigo-700 transition hover:bg-indigo-500/20 dark:text-indigo-300">${escapeHtml(c)}</button>`).join('');
+    }
+    chatChips.addEventListener('click', e => { const b = e.target.closest('button'); if (b) handleUser(b.textContent); });
+
+    async function greet() {
+      chat.greeted = true;
+      if (chat.user) {
+        await botSay(`Wapas swagat hai, ${chat.user.name}! Aaj main aapki kya madad kar sakta hoon?`, [], 300);
+        showChips();
+      } else {
+        await botSay('Namaste! Main Vidyasparsh Publication ka assistant hoon. Aapka sawal hamari team tak pahunchane ke liye pehle aapka naam jaan lun?', [], 400);
+      }
+    }
+
+    async function handleUser(raw) {
+      const text = String(raw || '').trim().slice(0, 500);
+      if (!text || chat.busy) return;
+      chat.busy = true; addMsg('user', text); chatInput.value = '';
+      try {
+        if (chat.step === 'name') {
+          chat.user = { name: text.slice(0, 60), phone: '' };
+          chat.step = 'phone';
+          await botSay(`Dhanyavaad, ${chat.user.name}! Apna mobile number bhi likh dijiye taaki team aapse sampark kar sake (ya "skip" likhein).`);
+        } else if (chat.step === 'phone') {
+          const digits = text.replace(/\D/g, '');
+          if (/^(skip|nahi|no)$/i.test(text.trim())) chat.user.phone = '';
+          else if (digits.length >= 10 && digits.length <= 13) chat.user.phone = digits;
+          else { await botSay('Kripya sahi mobile number likhein (10 digit), ya "skip" likhein.'); chat.busy = false; return; }
+          store.set('vs-chat-user', chat.user); chat.step = 'chat';
+          recordInquiry('(new visitor started chat)', null);
+          await botSay('Shukriya! Ab apna sawal poochiye — books, publishing, services ya exam paper ke baare mein.');
+          showChips();
+        } else {
+          const r = answer(text);
+          recordInquiry(text, r.text);
+          await botSay(r.text, r.actions);
+        }
+      } finally { chat.busy = false; chatInput.focus(); }
+    }
+
+    function openChat() {
+      chatPanel.classList.remove('hidden'); chatPanel.classList.add('flex');
+      if (!chat.greeted) greet();
+      setTimeout(() => chatInput.focus(), 50);
+    }
+    function closeChat() { chatPanel.classList.add('hidden'); chatPanel.classList.remove('flex'); }
+    $('#chat-btn').addEventListener('click', () => chatPanel.classList.contains('hidden') ? openChat() : closeChat());
+    $('#chat-close').addEventListener('click', closeChat);
+    $$('[data-open-chat]').forEach(b => b.addEventListener('click', openChat));
+    $('#chat-form').addEventListener('submit', e => { e.preventDefault(); handleUser(chatInput.value); });
+
+    /* Escape closes any open overlay */
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      closeCart(); closeVideo(); closeChat();
+    });
+
+    /* =====================================================================
+       CONTACT DETAILS (set from admin → Contact details)
+       ===================================================================== */
+    const CONTACT_CACHE_KEY = 'vs-contact';
+    function telHref(v) {
+      const t = String(v).trim(), d = t.replace(/\D/g, '');
+      if (!d) return '';
+      return 'tel:' + (t.startsWith('+') ? '+' + d : d.length === 10 ? '+91' + d : '+' + d);
+    }
+    function applyContact(c) {
+      if (!c) return;
+      const email = (c.contact_email || '').trim();
+      $$('[data-link="email"]').forEach(a => { a.style.display = email ? '' : 'none'; if (email) a.href = 'mailto:' + email; });
+      $$('[data-text="email"]').forEach(el => { if (email) el.textContent = email; });
+      [['phone1', 'contact_phone'], ['phone2', 'contact_phone2']].forEach(([name, key]) => {
+        const v = (c[key] || '').trim();
+        $$(`[data-link="${name}"]`).forEach(a => { a.style.display = v ? '' : 'none'; if (v) a.href = telHref(v); });
+        $$(`[data-text="${name}"]`).forEach(el => { if (v) el.textContent = v; });
+      });
+      // Address and working hours: shown when set in admin, hidden (hours) or left as default (address) when deleted
+      const addr = (c.contact_address || '').trim();
+      $$('[data-text="address"]').forEach(el => {
+        if (!el.dataset.def) el.dataset.def = el.textContent;
+        el.textContent = addr || el.dataset.def;
+      });
+      const hrs = (c.working_hours || '').trim();
+      $$('[data-text="hours"]').forEach(el => { el.textContent = hrs; el.classList.toggle('hidden', !hrs); });
+      const wa = String(c.whatsapp_number || '').replace(/\D/g, '');
+      if (wa.length >= 11) {
+        WHATSAPP_NUMBER = wa;
+        $('#footer-wa').href = waLink('Namaste Vidyasparsh Publication, mujhe jaankari chahiye.');
+        $('#social-wa').href = waLink('Namaste Vidyasparsh Publication!');
+        $('#strip-wa').href = waLink('Namaste Vidyasparsh Publication!');
+        try { renderCart(); } catch (e) { /* cart not ready yet */ }
+      }
+    }
+    async function loadContact() {
+      // Show the last saved details at once, then refresh from Supabase
+      try { applyContact(JSON.parse(localStorage.getItem(CONTACT_CACHE_KEY) || 'null')); } catch (e) { /* ignore */ }
+      if (!supabaseReady()) return;
+      try {
+        const { data, error } = await getClient().from('site_settings').select('key,value');
+        if (error || !data) return;   // a real error keeps the last saved details on screen
+        const c = {};   // an empty table means everything was deleted in admin
+        data.forEach(r => { c[r.key] = r.value || ''; });
+        applyContact(c);
+        try { localStorage.setItem(CONTACT_CACHE_KEY, JSON.stringify(c)); } catch (e) { /* ignore */ }
+      } catch (err) { console.warn('[Vidyasparsh] contact details not loaded', err); }
+    }
+
+    /* =====================================================================
+       Init
+       ===================================================================== */
+    // Each step runs on its own, so one failing step can never stop books or videos from loading.
+    [loadBooks, loadVideos, renderCart, renderPaper, rebuildBank, icons, loadQuestions, flushInquiries, loadContact].forEach(step => {
+      try {
+        const r = step();
+        if (r && typeof r.catch === 'function') r.catch(err => console.error('[Vidyasparsh] ' + step.name + ' failed:', err));
+      } catch (err) {
+        console.error('[Vidyasparsh] ' + step.name + ' failed:', err);
+      }
+    });
+  </script>
+  <!-- =====================================================================
+     VIDYASPARSH FLOATING CHATBOT — paste this whole block just before </body>
+     Needs: Tailwind (already on your page) and your existing getClient()
+     Supabase helper. All ids are prefixed "vsb-" and the script is wrapped
+     in a function, so it will not clash with anything else on the page.
+     ===================================================================== -->
+
+<div id="vsb-root" class="no-print fixed bottom-5 left-4 z-[65] font-sans sm:left-5">
+
+  <!-- Chat window -->
+  <section id="vsb-panel" role="dialog" aria-label="Vidyasparsh assistant" aria-hidden="true"
+    class="invisible absolute bottom-[4.5rem] left-0 flex h-[min(34rem,calc(100vh-7.5rem))] w-[calc(100vw-2rem)] max-w-sm origin-bottom-left translate-y-3 scale-95 flex-col overflow-hidden rounded-3xl bg-white/70 opacity-0 shadow-2xl shadow-indigo-900/25 ring-1 ring-white/50 backdrop-blur-2xl transition duration-300 ease-out motion-reduce:transition-none dark:bg-slate-900/70 dark:ring-white/10">
+
+    <!-- Header -->
+    <header class="flex items-center gap-3 bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 px-4 py-3.5 text-white">
+      <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-400 text-sm font-extrabold text-indigo-950">VS</div>
+      <div class="min-w-0 flex-1 leading-tight">
+        <p class="truncate text-sm font-bold">Vidyasparsh assistant</p>
+        <p class="mt-0.5 flex items-center gap-1.5 text-xs text-white/80">
+          <span class="h-2 w-2 rounded-full bg-emerald-400"></span> Replies instantly
+        </p>
+      </div>
+      <button id="vsb-close" type="button" aria-label="Close chat" class="grid h-8 w-8 place-items-center rounded-lg transition hover:bg-white/20">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+    </header>
+
+    <!-- Messages -->
+    <div id="vsb-log" role="log" aria-live="polite" class="flex-1 space-y-3 overflow-y-auto scroll-smooth p-4"></div>
+
+    <!-- Quick-reply chips -->
+    <div id="vsb-chips" class="flex flex-wrap gap-2 px-4 pb-3 transition-opacity"></div>
+
+    <!-- Input -->
+    <form id="vsb-form" autocomplete="off" class="flex items-center gap-2 border-t border-slate-900/10 bg-white/40 p-3 dark:border-white/10 dark:bg-white/5">
+      <input id="vsb-input" type="text" maxlength="1000" placeholder="Type a message…" aria-label="Your message"
+        class="min-w-0 flex-1 rounded-xl border border-slate-300/70 bg-white/80 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/15 dark:border-white/15 dark:bg-white/10 dark:text-white dark:placeholder:text-slate-400" />
+      <button id="vsb-send" type="submit" aria-label="Send message"
+        class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-500/30 transition hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m0 0-6-6m6 6-6 6"/></svg>
+      </button>
+    </form>
+  </section>
+
+  <!-- Floating button -->
+  <button id="vsb-launcher" type="button" aria-label="Open chat" aria-expanded="false" aria-controls="vsb-panel"
+    class="group relative grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 text-white shadow-xl shadow-indigo-500/40 transition duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-500/50 active:scale-95">
+    <svg data-vsb-open class="h-6 w-6 transition duration-300 group-hover:scale-110" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.5h9M7.5 12h5.5M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v8a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 3.5V17h0A2.5 2.5 0 0 1 4 14.5v-8Z"/></svg>
+    <svg data-vsb-x class="absolute hidden h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 6l12 12M18 6 6 18"/></svg>
+    <span id="vsb-ping" class="absolute -right-1 -top-1 flex h-3.5 w-3.5">
+      <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75 motion-reduce:animate-none"></span>
+      <span class="relative inline-flex h-3.5 w-3.5 rounded-full bg-amber-400 ring-2 ring-white dark:ring-slate-900"></span>
+    </span>
+  </button>
+</div>
+
 <script>
-let ALL = [];
-shell();
-$("tag").textContent = SITE.tagline; $("intro").textContent = SITE.intro;
-function render() {
-  const q = $("q").value.trim().toLowerCase(), c = $("fClass").value, s = $("fSubject").value;
-  const S = { new:null, low:(a,b)=>a.price-b.price, high:(a,b)=>b.price-a.price, az:(a,b)=>a.title.localeCompare(b.title) }[$("sort").value];
-  const list = ALL.filter(b => (!c || b.cls === c) && (!s || b.subject === s) && (!q || (b.title + " " + b.author).toLowerCase().includes(q)));
-  if (S) list.sort(S);
-  $("grid").innerHTML = list.length ? list.map(b => `<article class="card"><a href="book.html?s=${encodeURIComponent(b.slug)}">${cover(b)}</a><div class="info"><a href="book.html?s=${encodeURIComponent(b.slug)}"><b>${esc(b.title)}</b></a><div class="meta">${esc(b.cls)} · ${esc(b.subject)}</div><div class="row"><span class="price">${money(b.price)}</span>${b.in_stock === false ? '<span class="badge">Out of stock</span>' : `<button class="btn" data-add="${esc(b.id)}">Add to cart</button>`}</div></div></article>`).join("") : '<p class="empty">No books match your search. Try another class or subject.</p>';
-}
-document.addEventListener("click", e => { const a = e.target.closest("[data-add]"); if (a) addToCart(ALL.find(b => b.id === a.dataset.add)); });
-["q","fClass","fSubject","sort"].forEach(id => $(id).addEventListener("input", render));
-loadBooks().then(list => {
-  ALL = list;
-  const opts = (k, l) => `<option value="">${l}</option>` + [...new Set(ALL.map(b => b[k]))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true})).map(v => `<option>${esc(v)}</option>`).join("");
-  $("fClass").innerHTML = opts("cls","All classes"); $("fSubject").innerHTML = opts("subject","All subjects"); render();
-});
-</script></body></html>
+(() => {
+  'use strict';
+
+  /* ---------------- Settings you may want to edit ---------------- */
+  const SIDE  = 'left';        // 'left' or 'right'
+  const TABLE = 'messages';    // Supabase table: columns name, contact_info, message_text
+
+  const GREETING = 'Namaste! I’m the Vidyasparsh assistant. Tap a question below, or choose “Write to us” and our team will reply personally.';
+
+  const FAQ_ITEMS = [
+    { q: 'How to publish a book?',
+      a: 'Send us your manuscript on WhatsApp or email. Our team will review it and get back to you with editing, cover design and distribution options for your book.' },
+    { q: 'Delivery time?',
+      a: 'We confirm delivery details once your order is placed. Add books to the cart and send your order on WhatsApp, and our team will share the timeline for your address.' },
+    { q: 'Pricing?',
+      a: 'Prices depend on the book or service you choose. Tell us what you need and our team will send you an exact quote.' },
+    { q: 'What services do you offer?',
+      a: 'We offer editing and proofreading, cover design, and distribution. We also have a free Exam Paper Maker on this website.' }
+  ];
+
+  /* ---------------- Elements ---------------- */
+  const $ = (id) => document.getElementById(id);
+  const root = $('vsb-root'), panel = $('vsb-panel'), log = $('vsb-log'), chipsBox = $('vsb-chips');
+  const form = $('vsb-form'), input = $('vsb-input'), sendBtn = $('vsb-send');
+  const launcher = $('vsb-launcher'), iconOpen = launcher.querySelector('[data-vsb-open]'), iconX = launcher.querySelector('[data-vsb-x]');
+
+  if (SIDE === 'right') {
+    root.classList.remove('left-4', 'sm:left-5');
+    root.classList.add('right-4', 'sm:right-5');
+    panel.classList.remove('left-0', 'origin-bottom-left');
+    panel.classList.add('right-0', 'origin-bottom-right');
+  }
+
+  /* ---------------- State ---------------- */
+  const state = { open: false, greeted: false, busy: false, step: 'idle', draft: '', user: null };
+
+  /* ---------------- Supabase (uses your page’s existing client) ---------------- */
+  // If your page names its client differently, change just this function.
+  function getDb() {
+    try { if (typeof getClient === 'function') return getClient(); } catch (e) { /* ignore */ }
+    return null;
+  }
+
+  // Insert name, contact_info and message_text into the "messages" table.
+  async function saveMessage({ name, contact, text }) {
+    const db = getDb();
+    if (!db) throw new Error('Supabase is not ready (check the anon key).');
+    const { error } = await db.from(TABLE).insert([{ name, contact_info: contact, message_text: text }]);
+    if (error) throw error;
+  }
+
+  /* ---------------- UI helpers ---------------- */
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  const scrollDown = () => { log.scrollTop = log.scrollHeight; };
+  const firstName = (n) => String(n || '').trim().split(/\s+/)[0] || 'there';
+
+  function addMsg(role, text) {
+    const row = document.createElement('div');
+    row.className = 'flex translate-y-2 opacity-0 transition duration-300 motion-reduce:transition-none ' + (role === 'user' ? 'justify-end' : 'justify-start');
+    const bubble = document.createElement('div');
+    bubble.className = 'max-w-[85%] whitespace-pre-line break-words px-4 py-2.5 text-sm leading-relaxed ' + (role === 'user'
+      ? 'rounded-2xl rounded-br-md bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/20'
+      : 'rounded-2xl rounded-bl-md bg-white/85 text-slate-800 shadow-sm ring-1 ring-slate-900/5 dark:bg-white/10 dark:text-slate-100 dark:ring-white/10');
+    bubble.textContent = text;           // textContent keeps visitor input safe from HTML injection
+    row.appendChild(bubble);
+    log.appendChild(row);
+    requestAnimationFrame(() => row.classList.remove('translate-y-2', 'opacity-0'));
+    scrollDown();
+  }
+
+  function typingRow() {
+    const row = document.createElement('div');
+    row.className = 'flex justify-start';
+    row.innerHTML = '<div class="flex items-center gap-1 rounded-2xl rounded-bl-md bg-white/85 px-4 py-3 shadow-sm ring-1 ring-slate-900/5 dark:bg-white/10 dark:ring-white/10">' +
+      [0, 150, 300].map(d => `<span class="h-1.5 w-1.5 animate-bounce rounded-full bg-indigo-500 motion-reduce:animate-none" style="animation-delay:${d}ms"></span>`).join('') + '</div>';
+    return row;
+  }
+
+  function setBusy(on) {
+    state.busy = on;
+    input.disabled = on; sendBtn.disabled = on;
+    chipsBox.classList.toggle('pointer-events-none', on);
+    chipsBox.classList.toggle('opacity-50', on);
+  }
+
+  async function botSay(text, delay = 600) {
+    setBusy(true);
+    const t = typingRow(); log.appendChild(t); scrollDown();
+    await sleep(delay);
+    t.remove();
+    addMsg('bot', text);
+    setBusy(false);
+  }
+
+  function setChips(list) {
+    chipsBox.innerHTML = '';
+    list.forEach(({ label, kind, onClick }) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = label;
+      b.className = 'rounded-full px-3.5 py-1.5 text-xs font-semibold transition active:scale-95 ' + ({
+        faq:    'border border-indigo-500/30 bg-white/70 text-indigo-700 hover:bg-indigo-600 hover:text-white dark:border-indigo-300/30 dark:bg-white/10 dark:text-indigo-200 dark:hover:bg-indigo-500 dark:hover:text-white',
+        action: 'bg-amber-400 text-indigo-950 shadow-sm hover:bg-amber-300',
+        ghost:  'border border-slate-400/40 bg-transparent text-slate-600 hover:bg-slate-900/5 dark:text-slate-300 dark:hover:bg-white/10'
+      }[kind || 'faq']);
+      b.addEventListener('click', onClick);
+      chipsBox.appendChild(b);
+    });
+    scrollDown();
+  }
+
+  function setStep(step) {
+    state.step = step;
+    const cfg = {
+      idle:    { ph: 'Type a message…',          max: 1000, ac: 'off',   mode: 'text' },
+      name:    { ph: 'Your name',                max: 80,   ac: 'name',  mode: 'text' },
+      contact: { ph: 'Phone number or email',    max: 120,  ac: 'email', mode: 'text' },
+      message: { ph: 'Write your message…',      max: 1000, ac: 'off',   mode: 'text' }
+    }[step];
+    input.placeholder = cfg.ph; input.maxLength = cfg.max;
+    input.setAttribute('autocomplete', cfg.ac); input.inputMode = cfg.mode;
+  }
+
+  /* ---------------- Conversation flow ---------------- */
+  function showHome() {
+    setChips([
+      ...FAQ_ITEMS.map(item => ({ label: item.q, kind: 'faq', onClick: () => askFaq(item) })),
+      { label: 'Write to us', kind: 'action', onClick: startMessage }
+    ]);
+  }
+
+  async function askFaq(item) {
+    if (state.busy) return;
+    addMsg('user', item.q);
+    await botSay(item.a);
+    await botSay('Anything else I can help with?', 450);
+    showHome();
+  }
+
+  function cancelFlow() {
+    state.draft = ''; setStep('idle');
+    addMsg('user', 'Cancel');
+    botSay('No problem. What else can I help you with?', 450).then(showHome);
+  }
+
+  async function startMessage() {
+    if (state.busy) return;
+    addMsg('user', 'I’d like to write to you');
+    setChips([{ label: 'Cancel', kind: 'ghost', onClick: cancelFlow }]);
+    if (state.user) {
+      setStep('message');
+      await botSay(`Sure, ${firstName(state.user.name)}. What would you like to tell us?`);
+    } else {
+      setStep('name');
+      await botSay('Happy to pass your message to our team. May I have your name?');
+    }
+    input.focus();
+  }
+
+  const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
+  const isPhone = (v) => /^\d{7,15}$/.test(v.replace(/[\s\-().+]/g, ''));
+
+  async function submitMessage(text) {
+    const { name, contact } = state.user;
+    setBusy(true);
+    const t = typingRow(); log.appendChild(t); scrollDown();
+    try {
+      await saveMessage({ name, contact, text });
+      await sleep(400);
+      t.remove(); setBusy(false);
+      state.draft = ''; setStep('idle');
+      await botSay(`Thank you, ${firstName(name)}! Your message has been received. Our team will get in touch with you soon on ${contact}.`, 500);
+      showHome();
+    } catch (err) {
+      console.error('[Vidyasparsh chat] Could not save message:', err);
+      t.remove(); setBusy(false);
+      state.draft = text; setStep('message');
+      await botSay('Sorry, we couldn’t send your message just now. Please try again in a moment.', 500);
+      const chips = [{ label: 'Try again', kind: 'action', onClick: () => { setChips([]); submitMessage(state.draft); } }];
+      if (typeof waLink === 'function') {
+        chips.push({ label: 'Message us on WhatsApp', kind: 'faq', onClick: () => window.open(waLink('Namaste Vidyasparsh Publication, ' + state.draft), '_blank', 'noopener') });
+      }
+      chips.push({ label: 'Cancel', kind: 'ghost', onClick: cancelFlow });
+      setChips(chips);
+    }
+  }
+
+  async function handleInput(raw) {
+    const text = raw.trim();
+    if (!text || state.busy) return;
+    addMsg('user', text);
+    input.value = '';
+
+    switch (state.step) {
+      case 'idle': {
+        // A typed question that isn't a chip: treat it as a message for the team
+        state.draft = text;
+        if (state.user) { setChips([]); await submitMessage(text); break; }
+        setStep('name');
+        setChips([{ label: 'Cancel', kind: 'ghost', onClick: cancelFlow }]);
+        await botSay('Thanks! So our team can reply, may I have your name?');
+        break;
+      }
+      case 'name': {
+        if (text.length < 2 || /^\d+$/.test(text)) { await botSay('Please share your name so we know who to reply to.', 400); break; }
+        state.user = { name: text, contact: '' };
+        setStep('contact');
+        await botSay(`Nice to meet you, ${firstName(text)}. What’s the best phone number or email to reach you on?`);
+        break;
+      }
+      case 'contact': {
+        if (!isEmail(text) && !isPhone(text)) { await botSay('That doesn’t look like a phone number or email. Could you check it and try again?', 400); break; }
+        state.user.contact = text;
+        if (state.draft) { setChips([]); await submitMessage(state.draft); break; }
+        setStep('message');
+        await botSay('Thanks! What would you like to tell us?');
+        break;
+      }
+      case 'message': {
+        setChips([]);
+        await submitMessage(text);
+        break;
+      }
+    }
+    if (!state.busy) input.focus();
+  }
+
+  /* ---------------- Open / close ---------------- */
+  async function openPanel() {
+    state.open = true;
+    panel.classList.remove('invisible', 'translate-y-3', 'scale-95', 'opacity-0');
+    panel.setAttribute('aria-hidden', 'false');
+    launcher.setAttribute('aria-expanded', 'true'); launcher.setAttribute('aria-label', 'Close chat');
+    iconOpen.classList.add('hidden'); iconX.classList.remove('hidden');
+    $('vsb-ping').classList.add('hidden');
+    if (!state.greeted) {
+      state.greeted = true; setStep('idle');
+      await botSay(GREETING, 700);
+      showHome();
+    }
+    setTimeout(() => { if (state.open && !input.disabled) input.focus(); }, 250);
+  }
+  function closePanel() {
+    state.open = false;
+    panel.classList.add('translate-y-3', 'scale-95', 'opacity-0');
+    setTimeout(() => { if (!state.open) panel.classList.add('invisible'); }, 300);
+    panel.setAttribute('aria-hidden', 'true');
+    launcher.setAttribute('aria-expanded', 'false'); launcher.setAttribute('aria-label', 'Open chat');
+    iconX.classList.add('hidden'); iconOpen.classList.remove('hidden');
+  }
+
+  launcher.addEventListener('click', () => (state.open ? closePanel() : openPanel()));
+  $('vsb-close').addEventListener('click', () => { closePanel(); launcher.focus(); });
+  form.addEventListener('submit', (e) => { e.preventDefault(); handleInput(input.value); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && state.open) closePanel(); });
+})();
+</script>
+
+</body>
+</html>
